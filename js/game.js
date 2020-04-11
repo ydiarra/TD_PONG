@@ -12,16 +12,30 @@ let game = {
         height : 10,
         color : "#FFFFFF",
         posX : 200,
-        posY : 200
+        posY : 200,
+        directionX:1,
+        directionY:1,
+        speed:1,
+        move : function() {
+            this.posX += this.directionX * this.speed;
+            this.posY += this.directionY * this.speed;
+        },
+
+        bounce : function() {
+            if ( this.posX > game.groundWidth || this.posX < 0 )
+                this.directionX = -this.directionX;
+            if ( this.posY > game.groundHeight || this.posY < 0  )
+                this.directionY = -this.directionY;
+        },
+
     },
     playerOne : {
         width : 10,
-        height : 10,
+        height :10,
         color : "#FFFFFF",
         posX : 10,
         posY : 200
     },
-
     playerTwo : {
         width : 10,
         height : 10,
@@ -39,8 +53,7 @@ let game = {
         this.displayScore(0,0);
         this.displayBall();
         this.displayPlayers();
-         },
-
+    },
     displayScore : function(scorePlayer1, scorePlayer2) {
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, "60px Arial",
             "#FFFFFF", this.scorePosPlayer1, 55);
@@ -48,10 +61,22 @@ let game = {
             "#FFFFFF", this.scorePosPlayer2, 55);
     },
     displayBall : function() {
-        game.display.drawRectangleInLayer(this.playersBallLayer, this.ball.width, this.ball.height, this.ball.color, this.ball.posX, this.ball.posY);
+        game.display.drawRectangleInLayer(this.playersBallLayer, this.ball.width, this.ball.height,
+            this.ball.color, this.ball.posX, this.ball.posY);
     },
     displayPlayers : function() {
-        game.display.drawRectangleInLayer(this.playersBallLayer, this.playerOne.width, this.playerOne.height, this.playerOne.color, this.playerOne.posX, this.playerOne.posY);
-        game.display.drawRectangleInLayer(this.playersBallLayer, this.playerTwo.width, this.playerTwo.height, this.playerTwo.color, this.playerTwo.posX, this.playerTwo.posY);
+        game.display.drawRectangleInLayer(this.playersBallLayer, this.playerOne.width, this.playerOne.height,
+            this.playerOne.color, this.playerOne.posX, this.playerOne.posY);
+        game.display.drawRectangleInLayer(this.playersBallLayer, this.playerTwo.width, this.playerTwo.height,
+            this.playerTwo.color, this.playerTwo.posX, this.playerTwo.posY);
+    },
+    moveBall : function() {
+        this.ball.move();
+        this.ball.bounce();
+        this.displayBall();
+    },
+    clearLayer : function(targetLayer) {
+        targetLayer.clear();
     }
+
 };
