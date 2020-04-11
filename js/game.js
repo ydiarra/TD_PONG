@@ -58,6 +58,7 @@ let game = {
         this.displayBall();
         this.displayPlayers();
         game.initKeyboard(this.control.onKeyDown, this.control.onKeyUp);
+        game.initMouse(this.control.onMouseMove);
     },
     displayScore : function(scorePlayer1, scorePlayer2) {
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, "60px Arial",
@@ -88,10 +89,23 @@ let game = {
         window.onkeyup = onKeyUpFunction;
     },
     movePlayers : function() {
-        if (game.playerOne.goUp && game.playerOne.posY > 0)
-            game.playerOne.posY-=5;
-        else if (game.playerOne.goDown && game.playerOne.posY < game.groundHeight - game.playerOne.height)
-            game.playerOne.posY+=5;
+        if ( game.control.controlSystem == "KEYBOARD" ) {
+            // keyboard control
+            if ( game.playerOne.goUp ) {
+                game.playerOne.posY-=5;
+            } else if ( game.playerOne.goDown ) {
+                game.playerOne.posY+=5;
+            }
+        } else if ( game.control.controlSystem == "MOUSE" ) {
+            // mouse control
+            if (game.playerOne.goUp && game.playerOne.posY > game.control.mousePointer)
+                game.playerOne.posY-=5;
+            else if (game.playerOne.goDown && game.playerOne.posY < game.control.mousePointer)
+                game.playerOne.posY+=5;
+        }
     },
+    initMouse : function(onMouseMoveFunction) {
+        window.onmousemove = onMouseMoveFunction;
+    }
 
 };
