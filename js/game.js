@@ -54,6 +54,7 @@ let game = {
         posY : 200,
         goUp : false,
         goDown : false,
+        originalPosition : "left"
     },
     playerTwo : {
         width : 10,
@@ -63,6 +64,7 @@ let game = {
         posY : 200,
         goUp : false,
         goDown : false,
+        originalPosition : "right"
     },
     init : function() {
         this.groundLayer = game.display.createLayer("terrain", this.groundWidth, this.groundHeight, undefined, 0, "#000000", 0, 0);
@@ -79,6 +81,8 @@ let game = {
 
         this.wallSound = new Audio('./sound/wall.ogg');
         this.playerSound = new Audio('./sound/player.ogg');
+
+        game.ai.setPlayerAndBall(this.playerTwo, this.ball);
     },
     displayScore : function(scorePlayer1, scorePlayer2) {
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, "60px Arial",
