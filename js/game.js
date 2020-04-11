@@ -8,10 +8,11 @@ let game = {
     groundLayer : null,
     scorePosPlayer1 : 300,
     scorePosPlayer2 : 365,
-
     wallSound:null,
     playerSound:null,
-
+    divGame:null,
+    gameOn:false,
+    startGameButton:null,
     ball : {
         width : 10,
         height : 10,
@@ -21,9 +22,21 @@ let game = {
         directionX:1,
         directionY:1,
         speed:3,
+        inGame:false,
         move : function() {
-            this.posX += this.directionX * this.speed;
-            this.posY += this.directionY * this.speed;
+            if ( this.inGame ) {
+                this.posX += this.directionX * this.speed;
+                this.posY += this.directionY * this.speed;
+            }
+        },
+        lost : function(player) {
+            var returnValue = false;
+            if ( player.originalPosition == "left" && this.posX < player.posX - this.width ) {
+                returnValue = true;
+            } else if ( player.originalPosition == "right" && this.posX > player.posX + player.width ) {
+                returnValue = true;
+            }
+            return returnValue;
         },
 
         bounce : function(soundToPlay) {
@@ -54,39 +67,51 @@ let game = {
         posY : 200,
         goUp : false,
         goDown : false,
-        originalPosition : "left"
+        originalPosition : "left",
+        score:0,
+        ai:false,
     },
     playerTwo : {
         width : 10,
         height : 50,
         color : "#FFFFFF",
-        posX : 600,
+        posX : 650,
         posY : 200,
         goUp : false,
         goDown : false,
-        originalPosition : "right"
+        originalPosition : "right",
+        score:0,
+        ai:true,
     },
     init : function() {
-        this.groundLayer = game.display.createLayer("terrain", this.groundWidth, this.groundHeight, undefined, 0, "#000000", 0, 0);
-        game.display.drawRectangleInLayer(this.groundLayer, this.netWidth, this.groundHeight, this.netColor, this.groundWidth/2 - this.netWidth/2, 0);
-        this.scoreLayer = game.display.createLayer("score", this.groundWidth, this.groundHeight, undefined, 1, undefined, 0, 0);
-        game.display.drawTextInLayer(this.scoreLayer, "SCORE", "10px Arial", "#FF0000", 10, 10);
-        this.playersBallLayer = game.display.createLayer("joueursetballe", this.groundWidth, this.groundHeight, undefined, 2, undefined, 0, 0);
-        game.display.drawTextInLayer(this.playersBallLayer, "JOUEURSETBALLE", "10px Arial", "#FF0000", 100, 100);
-        this.displayScore(0,0);
-        this.displayBall();
-        this.displayPlayers();
-        this.initKeyboard(this.control.onKeyDown, this.control.onKeyUp);
-        this.initMouse(this.control.onMouseMove);
+        this.divGame = document.getElementById("divGame");
+        this.startGameButton = document.getElementById("startGame");
 
-        this.wallSound = new Audio('./sound/wall.ogg');
-        this.playerSound = new Audio('./sound/player.ogg');
+        this.groundLayer= game.display.createLayer("terrain", this.groundWidth, this.groundHeight, this.divGame, 0, "#000000", 10, 50);
+        game.display.drawRectangleInLayer(this.groundLayer, this.netWidth, this.groundHeight, this.netColor, this.groundWidth/2 - this.netWidth/2, 0);
+
+        this.scoreLayer = game.display.createLayer("score", this.groundWidth, this.groundHeight, this.divGame, 1, undefined, 10, 50);
+        game.display.drawTextInLayer(this.scoreLayer , "SCORE", "10px Arial", "#FF0000", 10, 10);
+
+        this.playersBallLayer = game.display.createLayer("joueursetballe", this.groundWidth, this.groundHeight, this.divGame, 2, undefined, 10, 50);
+        game.display.drawTextInLayer(this.playersBallLayer, "JOUEURSETBALLE", "10px Arial", "#FF0000", 100, 100);
+
+        this.displayScore(0,0);
+        this.displayBall(200,200);
+        this.displayPlayers();
+
+        this.initKeyboard(game.control.onKeyDown, game.control.onKeyUp);
+        this.initMouse(game.control.onMouseMove);
+        this.initStartGameButton();
+
+        this.wallSound = new Audio("./sound/wall.ogg");
+        this.playerSound = new Audio("./sound/player.ogg");
 
         game.ai.setPlayerAndBall(this.playerTwo, this.ball);
     },
     displayScore : function(scorePlayer1, scorePlayer2) {
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, "60px Arial",
-            "#FFFFFF", this.scorePosPlayer1, 55);
+            "#FFFFFF", this.scorePosPlayer1,  55);
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer2, "60px Arial",
             "#FFFFFF", this.scorePosPlayer2, 55);
     },
@@ -135,15 +160,50 @@ let game = {
         if ( this.ball.collide(game.playerOne) ){
             game.ball.directionX = -game.ball.directionX;
             this.playerSound.play();
-
         }
-
         if ( this.ball.collide(game.playerTwo) ){
             game.ball.directionX = -game.ball.directionX;
             this.playerSound.play();
+        }
+    },
+    lostBall : function() {
+        if ( this.ball.lost(this.playerOne) ) {
+            this.playerTwo.score++;
+            if ( this.playerTwo.score > 2 ) {
+                this.gameOn = false;
+                this.ball.inGame = false;
+            } else {
+                this.ball.inGame = false;
 
+                if ( this.playerOne.ai ) {
+                    setTimeout(game.ai.startBall(), 3000);
+                }
+            }
+        } else if ( this.ball.lost(this.playerTwo) ) {
+            this.playerOne.score++;
+            if ( this.playerOne.score > 2 ) {
+                this.gameOn = false;
+                this.ball.inGame = false;
+            } else {
+                this.ball.inGame = false;
+
+                if ( this.playerTwo.ai ) {
+                    setTimeout(game.ai.startBall(), 3000);
+                }
+            }
         }
 
+        this.scoreLayer.clear();
+        this.displayScore(this.playerOne.score, this.playerTwo.score);
     },
-
+    initStartGameButton : function() {
+        this.startGameButton.onclick = game.control.onStartGameClickButton;
+    },
+    reinitGame : function() {
+        this.ball.inGame = false;
+        this.playerOne.score = 0;
+        this.playerTwo.score = 0;
+        this.scoreLayer.clear();
+        this.displayScore(this.playerOne.score, this.playerTwo.score);
+    },
 };
