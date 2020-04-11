@@ -1,3 +1,4 @@
+
 let game = {
     groundWidth : 700,
     groundHeight : 400,
@@ -7,6 +8,10 @@ let game = {
     groundLayer : null,
     scorePosPlayer1 : 300,
     scorePosPlayer2 : 365,
+
+    wallSound:null,
+    playerSound:null,
+
     ball : {
         width : 10,
         height : 10,
@@ -21,11 +26,15 @@ let game = {
             this.posY += this.directionY * this.speed;
         },
 
-        bounce : function() {
-            if ( this.posX > game.groundWidth || this.posX < 0 )
+        bounce : function(soundToPlay) {
+            if ( this.posX > game.groundWidth || this.posX < 0 ) {
                 this.directionX = -this.directionX;
-            if ( this.posY > game.groundHeight || this.posY < 0  )
+                soundToPlay.play();
+            }
+            if ( this.posY > game.groundHeight || this.posY < 0  ) {
                 this.directionY = -this.directionY;
+                soundToPlay.play();
+            }
         },
         collide : function(anotherItem) {
             if ( !( this.posX >= anotherItem.posX + anotherItem.width || this.posX <= anotherItem.posX - this.width
@@ -65,8 +74,11 @@ let game = {
         this.displayScore(0,0);
         this.displayBall();
         this.displayPlayers();
-        game.initKeyboard(this.control.onKeyDown, this.control.onKeyUp);
-        game.initMouse(this.control.onMouseMove);
+        this.initKeyboard(this.control.onKeyDown, this.control.onKeyUp);
+        this.initMouse(this.control.onMouseMove);
+
+        this.wallSound = new Audio('./sound/wall.ogg');
+        this.playerSound = new Audio('./sound/player.ogg');
     },
     displayScore : function(scorePlayer1, scorePlayer2) {
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, "60px Arial",
@@ -86,7 +98,7 @@ let game = {
     },
     moveBall : function() {
         this.ball.move();
-        this.ball.bounce();
+        this.ball.bounce(this.wallSound);
         this.displayBall();
     },
     clearLayer : function(targetLayer) {
@@ -116,10 +128,18 @@ let game = {
         window.onmousemove = onMouseMoveFunction;
     },
     collideBallWithPlayersAndAction : function() {
-        if ( this.ball.collide(game.playerOne) )
+        if ( this.ball.collide(game.playerOne) ){
             game.ball.directionX = -game.ball.directionX;
-        if ( this.ball.collide(game.playerTwo) )
+            this.playerSound.play();
+
+        }
+
+        if ( this.ball.collide(game.playerTwo) ){
             game.ball.directionX = -game.ball.directionX;
+            this.playerSound.play();
+
+        }
+
     },
 
 };
