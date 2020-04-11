@@ -15,7 +15,7 @@ let game = {
         posY : 200,
         directionX:1,
         directionY:1,
-        speed:1,
+        speed:3,
         move : function() {
             this.posX += this.directionX * this.speed;
             this.posY += this.directionY * this.speed;
@@ -31,17 +31,21 @@ let game = {
     },
     playerOne : {
         width : 10,
-        height :10,
+        height :50,
         color : "#FFFFFF",
         posX : 10,
-        posY : 200
+        posY : 200,
+        goUp : false,
+        goDown : false,
     },
     playerTwo : {
         width : 10,
-        height : 10,
+        height : 50,
         color : "#FFFFFF",
         posX : 600,
-        posY : 200
+        posY : 200,
+        goUp : false,
+        goDown : false,
     },
     init : function() {
         this.groundLayer = game.display.createLayer("terrain", this.groundWidth, this.groundHeight, undefined, 0, "#000000", 0, 0);
@@ -53,6 +57,7 @@ let game = {
         this.displayScore(0,0);
         this.displayBall();
         this.displayPlayers();
+        game.initKeyboard(this.control.onKeyDown, this.control.onKeyUp);
     },
     displayScore : function(scorePlayer1, scorePlayer2) {
         game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, "60px Arial",
@@ -77,6 +82,16 @@ let game = {
     },
     clearLayer : function(targetLayer) {
         targetLayer.clear();
-    }
+    },
+    initKeyboard : function(onKeyDownFunction, onKeyUpFunction) {
+        window.onkeydown = onKeyDownFunction;
+        window.onkeyup = onKeyUpFunction;
+    },
+    movePlayers : function() {
+        if (game.playerOne.goUp && game.playerOne.posY > 0)
+            game.playerOne.posY-=5;
+        else if (game.playerOne.goDown && game.playerOne.posY < game.groundHeight - game.playerOne.height)
+            game.playerOne.posY+=5;
+    },
 
 };
