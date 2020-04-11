@@ -54,5 +54,8 @@ game.display = {
         targetLayer.context2D.fillStyle = color;
         targetLayer.context2D.fillText(text, x, y);
     },
+    drawImageInLayer : function(targetLayer, image, x, y) {
+        targetLayer.context2D.drawImage(image, x, y);
+    },
 
 };

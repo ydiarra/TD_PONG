@@ -4,8 +4,12 @@ game.control = {
 
     onKeyDown : function(event) {
         if ( event.keyCode == game.keycode.KEYDOWN ) {
+            game.control.controlSystem = "KEYBOARD";
+
             game.playerOne.goDown = true;
         } else if ( event.keyCode == game.keycode.KEYUP ) {
+            game.control.controlSystem = "KEYBOARD";
+
             game.playerOne.goUp = true;
         }
         if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn ) {
@@ -18,10 +22,11 @@ game.control = {
     },
 
     onKeyUp : function(event) {
-        if ( event.keyCode == game.keycode.KEY   ) {
+        if ( event.keyCode == game.keycode.KEYDOWN   ) {
             game.playerOne.goDown = false;
         } else if ( event.keyCode == game.keycode.KEYUP ) {
             game.playerOne.goUp = false;
+
         }
     },
     onMouseMove : function(event) {
@@ -49,5 +54,7 @@ game.control = {
             game.reinitGame();
             game.gameOn = true;
         }
-    }
+    },
+    drawImageInLayer : function(targetLayer, image, x, y) {
+    },
 };
