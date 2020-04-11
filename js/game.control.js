@@ -14,8 +14,8 @@ game.control = {
         }
         if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn ) {
             game.ball.inGame = true;
-            game.ball.posX = game.playerOne.posX + game.playerOne.width+10;
-            game.ball.posY = game.playerOne.posY;
+            game.ball.sprite.posX = game.playerOne.sprite.posX + game.playerOne.sprite.width+10;
+            game.ball.sprite.posY = game.playerOne.sprite.posY;
             game.ball.directionX = 1;
             game.ball.directionY = 1;
         }
@@ -37,10 +37,10 @@ game.control = {
             game.control.mousePointer = event.clientY;
         }
 
-        if ( game.control.mousePointer > game.playerOne.posY ) {
+        if ( game.control.mousePointer > game.playerOne.sprite.posY ) {
             game.playerOne.goDown = true;
             game.playerOne.goUp = false;
-        } else if ( game.control.mousePointer < game.playerOne.posY ) {
+        } else if ( game.control.mousePointer < game.playerOne.sprite.posY ) {
             game.playerOne.goDown = false;
             game.playerOne.goUp = true;
         } else {

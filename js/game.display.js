@@ -1,6 +1,5 @@
 game.display = {
     container : "",
-
     layer : {
         name : "",
         canvas : "",
@@ -15,6 +14,15 @@ game.display = {
             this.context2D.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
     },
+    sprite : {
+        width : 0,
+        height : 0,
+        posX : null,
+        posY : null,
+        imagePath : "",
+        img : null
+    },
+
 
     createLayer : function(name, width, height, htmlContainer , zIndex, backgroundColor, x, y) {
         let layer = Object.create(this.layer);
@@ -42,7 +50,7 @@ game.display = {
         } else {
             document.body.appendChild(layer.canvas);
         }
-        layer.context2D = layer.canvas.getContext('2d')
+        layer.context2D = layer.canvas.getContext('2d');
         return layer;
     },
     drawRectangleInLayer : function(targetLayer, width, heigth, color, x, y) {
@@ -54,8 +62,25 @@ game.display = {
         targetLayer.context2D.fillStyle = color;
         targetLayer.context2D.fillText(text, x, y);
     },
-    drawImageInLayer : function(targetLayer, image, x, y) {
-        targetLayer.context2D.drawImage(image, x, y);
+    drawImageInLayer : function(targetLayer, image, x, y, width, height) {
+        //console.log(image,x, y, width,height);
+        targetLayer.context2D.drawImage(image, x, y, width, height);
     },
 
+    createSprite : function(width, height, posX, posY, imagePath) {
+        console.log(imagePath,posX,posY ,width,height);
+        var sprite = Object.create(this.sprite);
+
+        sprite.width = width;
+        sprite.height = height;
+        sprite.posX = posX;
+        sprite.posY = posY;
+        sprite.imagePath = imagePath;
+        sprite.img = new Image();
+        sprite.img.src = imagePath;
+        sprite.img.width = width;
+        sprite.img.height = height;
+
+        return sprite;
+    }
 };
