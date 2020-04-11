@@ -4,17 +4,23 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body>
+<body style="background-image:url(./img/background.jpg)">
 <style>
     @font-face {
         font-family: 'DS-DIGIB';
         src: url('./font/ds_digital/DS-DIGIB.TTF');
     }
 </style>
-    <div id="menu">
-        <input id="startGame" style="width:120px" type="image" src="./img/startBtn.png">
+
+<div id="blocToCenter" style="width:100vh;height:100vh;position:absolute;margin:auto;">
+    <div id="left" style="float:left;display:block;width:150px;height:400px;border: 1px solid #0000FF;text-align:center;">
+        <input id="startGame" type="image" style="width:100px" src="./img/startBtn.png">
+        <input id="pauseGame" type="image" style="width:100px" src="./img/pauseBtn.png">
+        <input id="continueGame" type="image" style="width:100px;display: none" src="./img/continueBtn.png">
     </div>
-    <div id="divGame"></div>
+    <div id="divGame" style="float:left;display:block;width:700px;height:400px;border: 1px solid #0000FF;"></div>
+    <div id="right" style="float:right;display:block;width:150px;height:400px;border: 1px solid #0000FF;"></div>
+</div>
 </body>
 <script src="js/game.js"></script>
 <script src="js/game.keycode.js"></script>

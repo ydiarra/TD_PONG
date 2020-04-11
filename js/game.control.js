@@ -34,15 +34,16 @@ game.control = {
         game.control.controlSystem = "MOUSE";
 
         if ( event ) {
-            game.control.mousePointer = event.clientY;
+            game.control.mousePointer = event.clientY- conf.MOUSECORRECTIONPOSY;
         }
 
-        if ( game.control.mousePointer > game.playerOne.sprite.posY ) {
+        if ( game.control.mousePointer > game.playerOne.sprite.posY) {
             game.playerOne.goDown = true;
             game.playerOne.goUp = false;
         } else if ( game.control.mousePointer < game.playerOne.sprite.posY ) {
-            game.playerOne.goDown = false;
             game.playerOne.goUp = true;
+            game.playerOne.goDown = false;
+
         } else {
             game.playerOne.goDown = false;
             game.playerOne.goUp = false;
@@ -57,4 +58,19 @@ game.control = {
     },
     drawImageInLayer : function(targetLayer, image, x, y) {
     },
+    onPauseGameClickButton : function() {
+        if ( game.gameOn ) {
+            game.gameOn = false;
+            game.pauseGameButton.style.display = 'none';
+            game.continueGameButton.style.display = 'inline';
+        }
+    },
+
+    onContinueGameClickButton : function() {
+        if ( !game.gameOn ) {
+            game.gameOn = true;
+            game.pauseGameButton.style.display = 'inline';
+            game.continueGameButton.style.display = 'none';
+        }
+    }
 };

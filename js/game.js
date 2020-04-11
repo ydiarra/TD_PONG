@@ -11,12 +11,16 @@ let game = {
     divGame:null,
     gameOn:false,
     startGameButton:null,
+    pauseGameButton:null,
+    continueGameButton:null,
     devResX : 1366,
     devResY : 738,
     targeResX : null,
     targetResY : null,
     ratioResX : null,
     ratioResY : null,
+
+    blocToCenter : null,
     ball : {
         sprite : null,
         color : "#FFD700",
@@ -25,7 +29,7 @@ let game = {
         speed : 1,
         inGame:false,
         move : function() {
-            if ( this.inGame ) {
+            if ( this.inGame && game.gameOn ) {
                 this.sprite.posX += this.directionX * this.speed;
                 this.sprite.posY += this.directionY * this.speed;
             }
@@ -46,7 +50,7 @@ let game = {
                 this.directionX = -this.directionX;
                 soundToPlay.play();
             }
-            if ( this.sprite.posY > conf.GROUNDLAYERHEIGHT || this.sprite.posY < 0  ) {
+            if ( this.sprite.posY + this.sprite.height > conf.GROUNDLAYERHEIGHT || this.sprite.posY < 0  ) {
                 this.directionY = -this.directionY;
                 soundToPlay.play();
             }
@@ -89,6 +93,30 @@ let game = {
 
         this.divGame = document.getElementById("divGame");
         this.startGameButton = document.getElementById("startGame");
+        this.pauseGameButton = document.getElementById("pauseGame");
+        this.continueGameButton = document.getElementById("continueGame");
+
+        this.blocToCenter = document.getElementById("blocToCenter");
+        this.blocToCenter.style.width = conf.BLOCCENTERWIDTH + "px";
+        this.blocToCenter.style.height = conf.BLOCCENTERHEIGHT + "px";
+      //  this.blocToCenter.style.margin = "-" + conf.BLOCCENTERHEIGHT/2 + "px 0 0 -" + conf.BLOCCENTERWIDTH/2 + "px";
+
+        this.blocRight = document.getElementById("right");
+        this.blocRight.style.width = conf.BLOCRIGHTWIDTH + "px";
+        this.blocRight.style.height = conf.BLOCRIGHTHEIGHT + "px";
+
+        this.divGame = document.getElementById("divGame");
+        this.divGame.style.width = conf.BLOCDIVGAMEWIDTH + "px";
+        this.divGame.style.height = conf.BLOCDIVGAMEHEIGHT + "px";
+
+        this.startGameButton = document.getElementById("startGame");
+        this.startGameButton.style.width = conf.BUTTONSTARTGAMEWIDTH + "px";
+
+        this.pauseGameButton = document.getElementById("pauseGame");
+        this.pauseGameButton.style.width = conf.BUTTONPAUSEGAMEWIDTH + "px";
+
+        this.continueGameButton = document.getElementById("continueGame");
+        this.continueGameButton.style.width = conf.BUTTONCONTINUEGAMEWIDTH + "px";
 
         this.groundLayer= game.display.createLayer("terrain", conf.GROUNDLAYERWIDTH, conf.GROUNDLAYERHEIGHT,
             this.divGame, 0, "#000000", 10, 50);
@@ -119,6 +147,10 @@ let game = {
         this.initKeyboard(game.control.onKeyDown, game.control.onKeyUp);
         this.initMouse(game.control.onMouseMove);
         this.initStartGameButton();
+        this.initPauseGameButton();
+        this.initContinueGameButton();
+
+
 
         this.wallSound = new Audio("./sound/wall.ogg");
         this.playerSound = new Audio("./sound/player.ogg");
@@ -152,21 +184,24 @@ let game = {
         window.onkeyup = onKeyUpFunction;
     },
     movePlayers : function() {
-        if ( game.control.controlSystem == "KEYBOARD" ) {
+        if ( game.control.controlSystem == "KEYBOARD"  && game.gameOn) {
             // keyboard control
-            if ( game.playerOne.goUp ) {
+            if ( game.playerOne.goUp && game.playerOne.sprite.posY > 0 )
                 game.playerOne.sprite.posY-=5;
-            } else if ( game.playerOne.goDown ) {
+            else if ( game.playerOne.goDown && game.playerOne.sprite.posY < game.groundHeight - game.playerOne.sprite.height )
                 game.playerOne.sprite.posY+=5;
-            }
-        } else if ( game.control.controlSystem == "MOUSE" ) {
+        } else if ( game.control.controlSystem == "MOUSE"  && game.gameOn ) {
             // mouse control
-            if (game.playerOne.goUp && game.playerOne.sprite.posY > game.control.mousePointer)
+            if ( game.playerOne.goUp && game.playerOne.sprite.posY> game.control.mousePointer
+                && game.playerOne.sprite.posY > 0
+                )
                 game.playerOne.sprite.posY-=5;
-            else if (game.playerOne.goDown && game.playerOne.sprite.posY < game.control.mousePointer)
+            else if ( game.playerOne.goDown && game.playerOne.sprite.posY < game.control.mousePointer && game.playerOne.sprite.posY < conf.GROUNDLAYERHEIGHT - game.playerOne.sprite.height )
                 game.playerOne.sprite.posY+=5;
         }
     },
+
+
     initMouse : function(onMouseMoveFunction) {
         window.onmousemove = onMouseMoveFunction;
     },
@@ -177,7 +212,7 @@ let game = {
         }
         if ( this.ball.collide(game.playerTwo) ) {
             this.changeBallPath(game.playerTwo, game.ball);
-           // this.playerSound.play();
+            // this.playerSound.play();
         }
     },
     lostBall : function() {
@@ -286,9 +321,9 @@ let game = {
             }
         }
     },
-        speedUp: function() {
-            this.speed = this.speed + .1;
-        },
+    speedUp: function() {
+        this.speed = this.speed + .1;
+    },
     speedUpBall: function() {
         setInterval(function() {
             game.ball.speedUp();
@@ -299,6 +334,7 @@ let game = {
         this.targetResY = window.screen.availHeight;
         this.ratioResX = this.targetResX/this.devResX;
         this.ratioResY = this.targetResY/this.devResY;
+
     },
     resizeDisplayData : function(object, ratioX, ratioY) {
         var property;
@@ -309,5 +345,12 @@ let game = {
                 object[property] = Math.round(object[property] * ratioY);
             }
         }
+    },
+    initPauseGameButton : function() {
+        this.pauseGameButton.onclick = game.control.onPauseGameClickButton;
+    },
+
+    initContinueGameButton : function() {
+        this.continueGameButton.onclick = game.control.onContinueGameClickButton;
     },
 };

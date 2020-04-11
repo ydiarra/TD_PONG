@@ -7,44 +7,46 @@ game.ai = {
         this.ball = ball;
     },
     move : function() {
-        if ( this.ball.directionX == 1 ) {
-            if ( this.player.originalPosition == "right" ) {
-                // follow
-                this.followBall();
-            }
-            if ( this.player.originalPosition == "left" ) {
-                // center
-                this.goCenter();
-            }
-        } else {
-            if ( this.player.originalPosition == "right" ) {
-                // center
-                this.goCenter();
-            }
-            if ( this.player.originalPosition == "left" ) {
-                // follow
-                this.followBall();
+        if (game.gameOn) {
+            if (this.ball.directionX == 1) {
+                if (this.player.originalPosition == "right") {
+                    // follow
+                    this.followBall();
+                }
+                if (this.player.originalPosition == "left") {
+                    // center
+                    this.goCenter();
+                }
+            } else {
+                if (this.player.originalPosition == "right") {
+                    // center
+                    this.goCenter();
+                }
+                if (this.player.originalPosition == "left") {
+                    // follow
+                    this.followBall();
+                }
             }
         }
     },
     followBall : function() {
-        if ( this.ball.sprite.posY < this.player.sprite.posY + this.player.sprite.height/2 ) {
+        if ( this.ball.sprite.posY < this.player.sprite.posY + this.player.sprite.height/2   && game.gameOn) {
             // la position de la balle est sur l'écran, au dessus de celle de la raquette
             this.player.sprite.posY--;
-        } else if ( this.ball.sprite.posY > this.player.sprite.posY + this.player.sprite.height/2 ) {
+        } else if ( this.ball.sprite.posY > this.player.sprite.posY + this.player.sprite.height/2  && game.gameOn) {
             // la position de la balle est sur l'écran, en dessous de celle de la raquette
             this.player.sprite.posY++;
         }
     },
     goCenter : function() {
-        if ( this.player.sprite.posY + this.player.sprite.height/2 > game.groundHeight / 2 ) {
+        if ( this.player.sprite.posY + this.player.sprite.height/2 > game.groundHeight / 2  && game.gameOn) {
             this.player.posY--;
-        } else if ( this.player.sprite.posY + this.player.sprite.height/2 < game.groundHeight / 2 ) {
+        } else if ( this.player.sprite.posY + this.player.sprite.height/2 < game.groundHeight / 2  && game.gameOn) {
             this.player.posY++;
         }
     },
     startBall : function() {
-        if ( this.player.originalPosition == "right" ) {
+        if ( this.player.originalPosition == "right"  && game.gameOn) {
             this.ball.inGame = true;
             this.ball.sprite.posX = this.player.sprite.posX - this.player.sprite.width-10;
             this.ball.sprite.posY = this.player.sprite.posY;
