@@ -75,7 +75,8 @@ let game = {
         goDown : false,
         originalPosition : "left",
         score : 0,
-        ai : false
+        ai : false,
+        first:false,
 
     },
     playerTwo : {
@@ -85,7 +86,7 @@ let game = {
         goDown : false,
         originalPosition : "right",
         score : 0,
-        ai : true
+        ai : false
     },
     init : function() {
         this.initScreenRes();
@@ -99,7 +100,7 @@ let game = {
         this.blocToCenter = document.getElementById("blocToCenter");
         this.blocToCenter.style.width = conf.BLOCCENTERWIDTH + "px";
         this.blocToCenter.style.height = conf.BLOCCENTERHEIGHT + "px";
-      //  this.blocToCenter.style.margin = "-" + conf.BLOCCENTERHEIGHT/2 + "px 0 0 -" + conf.BLOCCENTERWIDTH/2 + "px";
+        //  this.blocToCenter.style.margin = "-" + conf.BLOCCENTERHEIGHT/2 + "px 0 0 -" + conf.BLOCCENTERWIDTH/2 + "px";
 
         this.blocRight = document.getElementById("right");
         this.blocRight.style.width = conf.BLOCRIGHTWIDTH + "px";
@@ -137,7 +138,6 @@ let game = {
         this.ball.sprite = game.display.createSprite(conf.BALLWIDTH,conf.BALLHEIGHT,conf.BALLPOSX,conf.BALLPOSY,
             "./img/ball.png");
         this.displayBall();
-
         this.playerOne.sprite = game.display.createSprite(conf.PLAYERONEWIDTH,conf.PLAYERONEHEIGHT,conf.PLAYERONEPOSX,conf.PLAYERONEPOSY,
             "./img/playerOne.png");
         this.playerTwo.sprite = game.display.createSprite(conf.PLAYERTWOWIDTH,conf.PLAYERTWOHEIGHT,conf.PLAYERTWOPOSX,conf.PLAYERTWOPOSY,
@@ -158,9 +158,15 @@ let game = {
         game.ai.setPlayerAndBall(this.playerTwo, this.ball);
     },
     displayScore : function(scorePlayer1, scorePlayer2) {
-        game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, conf.SCOREFONTSIZE + "pt DS-DIGIB", "#FFFFFF", conf.SCOREPOSXPLAYER1, conf.SCOREPOSYPLAYER1);
-        game.display.drawTextInLayer(this.scoreLayer, scorePlayer2, conf.SCOREFONTSIZE + "pt DS-DIGIB", "#FFFFFF", conf.SCOREPOSXPLAYER2, conf.SCOREPOSYPLAYER2);
-    },
+        if (this.playerOne.originalPosition==='left'){
+            game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, conf.SCOREFONTSIZE + "pt DS-DIGIB", "#FFFFFF", conf.SCOREPOSXPLAYER1, conf.SCOREPOSYPLAYER1);
+            game.display.drawTextInLayer(this.scoreLayer, scorePlayer2, conf.SCOREFONTSIZE + "pt DS-DIGIB", "#FFFFFF", conf.SCOREPOSXPLAYER2, conf.SCOREPOSYPLAYER2);
+        }else{
+            game.display.drawTextInLayer(this.scoreLayer, scorePlayer2, conf.SCOREFONTSIZE + "pt DS-DIGIB", "#FFFFFF", conf.SCOREPOSXPLAYER1, conf.SCOREPOSYPLAYER1);
+            game.display.drawTextInLayer(this.scoreLayer, scorePlayer1, conf.SCOREFONTSIZE + "pt DS-DIGIB", "#FFFFFF", conf.SCOREPOSXPLAYER2, conf.SCOREPOSYPLAYER2);
+
+        }
+           },
     displayBall : function() {
         game.display.drawImageInLayer(this.playersBallLayer, this.ball.sprite.img, this.ball.sprite.posX,
             this.ball.sprite.posY,this.ball.sprite.width,this.ball.sprite.height);
@@ -188,15 +194,21 @@ let game = {
             // keyboard control
             if ( game.playerOne.goUp && game.playerOne.sprite.posY > 0 )
                 game.playerOne.sprite.posY-=5;
-            else if ( game.playerOne.goDown && game.playerOne.sprite.posY < game.groundHeight - game.playerOne.sprite.height )
+            else if ( game.playerOne.goDown &&
+                game.playerOne.sprite.posY < conf.GROUNDLAYERHEIGHT - game.playerOne.sprite.height )
                 game.playerOne.sprite.posY+=5;
         } else if ( game.control.controlSystem == "MOUSE"  && game.gameOn ) {
             // mouse control
-            if ( game.playerOne.goUp && game.playerOne.sprite.posY> game.control.mousePointer
+            if ( game.playerOne.goUp
+                && game.playerOne.sprite.posY> game.control.mousePointer
                 && game.playerOne.sprite.posY > 0
-                )
+            )
                 game.playerOne.sprite.posY-=5;
-            else if ( game.playerOne.goDown && game.playerOne.sprite.posY < game.control.mousePointer && game.playerOne.sprite.posY < conf.GROUNDLAYERHEIGHT - game.playerOne.sprite.height )
+            else if ( game.playerOne.goDown
+                && game.playerOne.sprite.posY < conf.GROUNDLAYERHEIGHT - game.playerOne.sprite.height
+                && game.playerOne.sprite.posY< game.control.mousePointer
+
+            )
                 game.playerOne.sprite.posY+=5;
         }
     },
@@ -216,8 +228,13 @@ let game = {
         }
     },
     lostBall : function() {
+        console.log('perdu J1',this.ball.lost(this.playerOne));
         if ( this.ball.lost(this.playerOne) ) {
             this.playerTwo.score++;
+            socket.emit('score',{
+                'ScoreP1':this.playerOne.score,
+                'ScoreP2':this.playerTwo.score
+            });
             if ( this.playerTwo.score > 2 ) {
                 this.gameOn = false;
                 this.ball.inGame = false;
@@ -230,6 +247,10 @@ let game = {
             }
         } else if ( this.ball.lost(this.playerTwo) ) {
             this.playerOne.score++;
+            socket.emit('score',{
+                'ScoreP1':this.playerOne.score,
+                'ScoreP2':this.playerTwo.score
+            });
             if ( this.playerOne.score > 2 ) {
                 this.gameOn = false;
                 this.ball.inGame = false;
@@ -249,21 +270,30 @@ let game = {
         this.startGameButton.onclick = game.control.onStartGameClickButton;
     },
     reinitGame : function() {
+
         this.ball.inGame = false;
+
         this.ball.speed = 1;
+
         this.playerOne.score = 0;
+
         this.playerTwo.score = 0;
+
         this.scoreLayer.clear();
+
         this.displayScore(this.playerOne.score, this.playerTwo.score);
+
     },
     ballOnPlayer : function(player, ball) {
         var returnValue = "CENTER";
         var playerPositions = player.sprite.height/5;
         if ( ball.sprite.posY > player.sprite.posY && ball.sprite.posY < player.sprite.posY + playerPositions ) {
             returnValue = "TOP";
-        } else if ( ball.sprite.posY >= player.sprite.posY + playerPositions && ball.sprite.posY < player.sprite.posY + playerPositions*2 ) {
+        } else if ( ball.sprite.posY >= player.sprite.posY + playerPositions
+            && ball.sprite.posY < player.sprite.posY + playerPositions*2 ) {
             returnValue = "MIDDLETOP";
-        } else if ( ball.sprite.posY >= player.sprite.posY + playerPositions*2 && ball.sprite.posY < player.sprite.posY +
+        } else if ( ball.sprite.posY >= player.sprite.posY + playerPositions*2
+            && ball.sprite.posY < player.sprite.posY +
             player.sprite.height - playerPositions ) {
             returnValue = "MIDDLEBOTTOM";
         } else if ( ball.sprite.posY >= player.sprite.posY + player.sprite.height - playerPositions && ball.sprite.posY < player.sprite.posY +

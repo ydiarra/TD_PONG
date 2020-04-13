@@ -28,23 +28,39 @@
 <script src="js/game.display.js"></script>
 <script src="js/game.ai.js"></script>
 <script src="js/game.conf.js"></script>
-
+<script src="/socket.io/socket.io.js"></script>
+<script
+        src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
 <script>
     (function () {
         // début du code isolé
+        let multi=true;
         let requestAnimId;
         let initialisation = ()=> {
             // le code de l'initialisation
+
+            //changement d'init pour savoir si IA ou pas
             game.init();
 
+
             requestAnimId = window.requestAnimationFrame(main); // premier appel de main au rafraîchissement de la page
+            socket.emit('nbreConnection');
         };
         let main = ()=> {
             // le code du jeu
             game.clearLayer(game.playersBallLayer);
             game.movePlayers();
+            //envoyer ça position
+            if(game.playerOne.goDown || game.playerOne.goUp){
+                socket.emit('Position',game.playerOne.sprite.posY);
+                //console.log(game.playerOne.goDown , game.playerOne.goUp);
+            }
             game.displayPlayers();
             game.moveBall();
+            if ( game.playerOne.first)
+                socket.emit('balle',game.ball);
             if ( game.ball.inGame ) {
                 game.lostBall();
             }
@@ -54,6 +70,80 @@
         };
         window.onload = initialisation; // appel de la fonction initialisation au chargement de la page
         // fin du code isolé
+
     })();
+</script>
+<script>
+    let socket=io();
+let knowNumberServer=false;
+let first=false;
+
+    $('#startGame').click(()=>{
+        socket.emit('start');
+
+        //let playerOneCopie=game.playerOne.sprite.posX;
+
+
+
+    });
+    $('#pauseGame').click(()=>{
+        socket.emit('pause');
+    });
+    $('#continueGame').click(()=>{
+        socket.emit('continue');
+    });
+    SendPosition=()=>{
+        socket.emit('Positon',game.playerOne.sprite.posY);
+    };
+    socket.on('start',()=>{
+       // alert('un joueur veut commencer !');
+    });
+    socket.on('Position',(data)=>{
+        console.log(data);
+        game.playerTwo.sprite.posY=data;
+    });
+
+    socket.on('balle',(data)=>{
+        //console.log(data);
+        if(knowNumberServer){
+            game.ball.sprite.posX=data.sprite.posX;
+            game.ball.sprite.posY=data.sprite.posY;
+            game.ball.speed=data.speed;
+        }
+
+
+    });
+
+    socket.on('nbreConnection',(data)=>{
+        console.log('nbre connec',data);
+        if(!knowNumberServer && data>1){
+            console.log('je suis passe chez so');
+            game.playerOne.sprite.posX=conf.PLAYERTWOPOSX;
+            game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
+            game.playerOne.originalPosition='right';
+            game.playerTwo.originalPosition='left';
+        }else{
+            console.log('je suis le 1er arrivé');
+            game.playerOne.first = true;
+        }
+        knowNumberServer=true;
+
+    })
+    socket.on('score',(data)=>{
+        game.playerOne.score = data.ScoreP1;
+        game.playerTwo.score = data.ScoreP2;
+        game.clearLayer(game.scoreLayer);
+        game.displayScore( game.playerOne.score , game.playerTwo.score  );
+        console.log('reception maj score');
+    }) ;
+
+//ia ou non ?
+    //variable service celui qui sert dinne la position de la balle jusqu'au moment ou il perd
+    //ajout choix vs IA ou multi
+    //ameliorer le multi etre sur que le 2 joueurs sont prs
+    //creer de multi rooms pour le multi pour + de 2 joueurs
+    //voir si ajout d'un menu
+    // revoir le CSS
+
 </script>
 </html>

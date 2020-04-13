@@ -14,10 +14,22 @@ game.control = {
         }
         if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn ) {
             game.ball.inGame = true;
-            game.ball.sprite.posX = game.playerOne.sprite.posX + game.playerOne.sprite.width+10;
-            game.ball.sprite.posY = game.playerOne.sprite.posY;
-            game.ball.directionX = 1;
-            game.ball.directionY = 1;
+
+
+            if ( game.playerOne.originalPosition === "right" ) {
+                console.log('on est a droite');
+                game.ball.sprite.posX = game.playerOne.sprite.posX - game.playerOne.sprite.width-10;
+                game.ball.sprite.posY = game.playerOne.sprite.posY+game.playerOne.sprite.height/2;
+                game.ball.directionX = -1;
+                game.ball.directionY = 1;
+            } else {
+                console.log(game.playerOne.originalPosition);
+
+                game.ball.sprite.posX = game.playerOne.sprite.posX + game.playerOne.sprite.width+10;
+                game.ball.sprite.posY = game.playerOne.sprite.posY+game.playerOne.sprite.height/2;
+                game.ball.directionX = 1;
+                game.ball.directionY = 1;
+            }
         }
     },
 
@@ -34,13 +46,19 @@ game.control = {
         game.control.controlSystem = "MOUSE";
 
         if ( event ) {
-            game.control.mousePointer = event.clientY- conf.MOUSECORRECTIONPOSY;
+            game.control.mousePointer = event.clientY-conf.MOUSECORRECTIONPOSY;
         }
 
-        if ( game.control.mousePointer > game.playerOne.sprite.posY) {
+        if ( game.control.mousePointer > game.playerOne.sprite.posY
+            && game.gameOn
+            && game.control.controlSystem == "MOUSE"
+            && game.playerOne.sprite.posY < conf.GROUNDLAYERHEIGHT - game.playerOne.sprite.height) {
             game.playerOne.goDown = true;
             game.playerOne.goUp = false;
-        } else if ( game.control.mousePointer < game.playerOne.sprite.posY ) {
+        } else if ( game.control.mousePointer < game.playerOne.sprite.posY
+            && game.gameOn
+            && game.control.controlSystem == "MOUSE"
+            && game.playerOne.sprite.posY > 0) {
             game.playerOne.goUp = true;
             game.playerOne.goDown = false;
 
@@ -52,8 +70,11 @@ game.control = {
 
     onStartGameClickButton : function() {
         if ( !game.gameOn ) {
+
             game.reinitGame();
+
             game.gameOn = true;
+
         }
     },
     drawImageInLayer : function(targetLayer, image, x, y) {
