@@ -68,7 +68,7 @@ io.on('connection', function (socket) {
             Games.push({
                 'NomPartie': NomPartie,
                 'IdHote': ID,
-                'IdAdversaire': '',
+                'IdAdversaire': ''
             });
             //socket.join(data);
             socket.emit('GameCreated', NomPartie);
