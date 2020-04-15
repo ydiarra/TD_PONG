@@ -12,12 +12,10 @@ game.control = {
 
             game.playerOne.goUp = true;
         }
-        if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn ) {
+        if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn && game.playerOne.service ) {
             game.ball.inGame = true;
-
-
             if ( game.playerOne.originalPosition === "right" ) {
-                console.log('on est a droite');
+                console.log(game.playerOne.originalPosition);
                 game.ball.sprite.posX = game.playerOne.sprite.posX - game.playerOne.sprite.width-10;
                 game.ball.sprite.posY = game.playerOne.sprite.posY+game.playerOne.sprite.height/2;
                 game.ball.directionX = -1;

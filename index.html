@@ -10,6 +10,92 @@
         font-family: 'DS-DIGIB';
         src: url('./font/ds_digital/DS-DIGIB.TTF');
     }
+    .lds-roller {
+        display: none;
+        position: relative;
+        width: 80px;
+        height: 80px;
+    }
+    .lds-roller div {
+        animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        transform-origin: 40px 40px;
+    }
+    .lds-roller div:after {
+        content: " ";
+        display: block;
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #fff;
+        margin: -4px 0 0 -4px;
+    }
+    .lds-roller div:nth-child(1) {
+        animation-delay: -0.036s;
+    }
+    .lds-roller div:nth-child(1):after {
+        top: 63px;
+        left: 63px;
+    }
+    .lds-roller div:nth-child(2) {
+        animation-delay: -0.072s;
+    }
+    .lds-roller div:nth-child(2):after {
+        top: 68px;
+        left: 56px;
+    }
+    .lds-roller div:nth-child(3) {
+        animation-delay: -0.108s;
+    }
+    .lds-roller div:nth-child(3):after {
+        top: 71px;
+        left: 48px;
+    }
+    .lds-roller div:nth-child(4) {
+        animation-delay: -0.144s;
+    }
+    .lds-roller div:nth-child(4):after {
+        top: 72px;
+        left: 40px;
+    }
+    .lds-roller div:nth-child(5) {
+        animation-delay: -0.18s;
+    }
+    .lds-roller div:nth-child(5):after {
+        top: 71px;
+        left: 32px;
+    }
+    .lds-roller div:nth-child(6) {
+        animation-delay: -0.216s;
+    }
+    .lds-roller div:nth-child(6):after {
+        top: 68px;
+        left: 24px;
+    }
+    .lds-roller div:nth-child(7) {
+        animation-delay: -0.252s;
+    }
+    .lds-roller div:nth-child(7):after {
+        top: 63px;
+        left: 17px;
+    }
+    .lds-roller div:nth-child(8) {
+        animation-delay: -0.288s;
+    }
+    .lds-roller div:nth-child(8):after {
+        top: 56px;
+        left: 12px;
+    }
+    @keyframes lds-roller {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+
 </style>
 
 <div id="blocToCenter" style="width:100vh;height:100vh;position:absolute;margin:auto;">
@@ -17,9 +103,14 @@
         <input id="startGame" type="image" style="width:100px" src="./img/startBtn.png">
         <input id="pauseGame" type="image" style="width:100px" src="./img/pauseBtn.png">
         <input id="continueGame" type="image" style="width:100px;display: none" src="./img/continueBtn.png">
+        <Button id="multijoueur" style="width:100px;height:50px;">MultiJoueur</Button>
+        <input type="text" id="NomPartie" style="width:100px;height:50px;display: none;">
+        <Button id="CreateGame" style="width:100px;height:50px;display: none;">Create game</Button>
+        <Button id="JoinGame" style="width:100px;height:50px;display: none;">Join game</Button>
+        <div class="lds-roller" ><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
     </div>
     <div id="divGame" style="float:left;display:block;width:700px;height:400px;border: 1px solid #0000FF;"></div>
-    <div id="right" style="float:right;display:block;width:150px;height:400px;border: 1px solid #0000FF;"></div>
+    <div id="right" style="float:right;display:block;width:100px;height:400px;border: 1px solid #0000FF;"></div>
 </div>
 </body>
 <script src="js/game.js"></script>
@@ -53,18 +144,27 @@
             game.clearLayer(game.playersBallLayer);
             game.movePlayers();
             //envoyer ça position
-            if(game.playerOne.goDown || game.playerOne.goUp){
-                socket.emit('Position',game.playerOne.sprite.posY);
+            if((game.playerOne.goDown || game.playerOne.goUp)&&(game.playerTwo.IdSocket!=='')){
+                socket
+                    .emit('Position',{
+                        'Destinataire':game.playerTwo.IdSocket,
+                        'Position':game.playerOne.sprite.posY
+                    });
                 //console.log(game.playerOne.goDown , game.playerOne.goUp);
             }
             game.displayPlayers();
             game.moveBall();
-            if ( game.playerOne.first)
-                socket.emit('balle',game.ball);
-            if ( game.ball.inGame ) {
+            if ( game.playerOne.service)
+                socket
+                    .emit('balle',{
+                        'Destinataire':game.playerTwo.IdSocket,
+                        'Balle':game.ball
+                    });
+            if ( game.ball.inGame )
                 game.lostBall();
-            }
-            game.ai.move();
+
+            if (game.playerTwo.ai)
+                game.ai.move();
             game.collideBallWithPlayersAndAction();
             requestAnimId = window.requestAnimationFrame(main); // rappel de main au prochain rafraîchissement de la page
         };
@@ -74,7 +174,9 @@
     })();
 </script>
 <script>
-    let socket=io();
+    let socket=io({
+        autoConnect:false
+    });
 let knowNumberServer=false;
 let first=false;
 
@@ -118,13 +220,11 @@ let first=false;
         console.log('nbre connec',data);
         if(!knowNumberServer && data>1){
             console.log('je suis passe chez so');
-            game.playerOne.sprite.posX=conf.PLAYERTWOPOSX;
-            game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
-            game.playerOne.originalPosition='right';
-            game.playerTwo.originalPosition='left';
+            game.playerOne.service = false;
         }else{
             console.log('je suis le 1er arrivé');
             game.playerOne.first = true;
+            game.playerOne.service = true;
         }
         knowNumberServer=true;
 
@@ -132,18 +232,114 @@ let first=false;
     socket.on('score',(data)=>{
         game.playerOne.score = data.ScoreP1;
         game.playerTwo.score = data.ScoreP2;
+        game.playerOne.service = data.Service;
         game.clearLayer(game.scoreLayer);
         game.displayScore( game.playerOne.score , game.playerTwo.score  );
         console.log('reception maj score');
     }) ;
+    socket.on('GameCreated',(data)=>{
+        $('#NomPartie').css('display','none');
+        $('#CreateGame').css('display','none');
+        $('#JoinGame').css('display','none');
+        game.playerOne.service = true;
+        console.log('created',data);
+        $('.lds-roller').css('display','inline-block');
 
-//ia ou non ?
+        //En attente de l'adversaire
+    }) ;
+    socket.on('JoinGame',(data)=>{
+
+       console.log('joined',data);
+       game.playerTwo.IdSocket=data;
+    }) ;
+    socket.on('GameAlreadyExist',(data)=>{
+        alert('cette partie nexiste pas');
+    });
+    socket.on('GameNotExist',(data)=>{
+        alert('Ce nom de jeu nexiste pas');
+    }) ;
+
+    socket.on('AdversaireJoin',(data)=>{
+        console.log('l adversaire a rejoint la partie',data);
+        $('.lds-roller').css('display','none');
+        //attente adversaire... fin
+        //gerer le debut du match
+        game.playerTwo.IdSocket=data;
+
+    })
+    socket.on('reinitGame',()=>{
+        game.reinitGame();
+    })
+    socket.on('continue',()=>{
+        console.log('recpetion continue');
+        game.control.onContinueGameClickButton();
+    })
+    socket.on('pause',()=>{
+        console.log('recpetion continue');
+        game.control.onPauseGameClickButton();
+    })
+
+    //attente de l'adversaire
     //variable service celui qui sert dinne la position de la balle jusqu'au moment ou il perd
-    //ajout choix vs IA ou multi
     //ameliorer le multi etre sur que le 2 joueurs sont prs
-    //creer de multi rooms pour le multi pour + de 2 joueurs
     //voir si ajout d'un menu
     // revoir le CSS
+    //Annonce du service
+    //gestion sori du jeu disconnect
+    //gestion connection a la partie
+    //gestion +2 joueurs
+</script>
+<script>
+    $('#multijoueur').click(()=>{
+        //ai=false et attendre le joueur
+        $('#NomPartie').css('display','inline');
+        $('#CreateGame').css('display','inline');
+        $('#JoinGame').css('display','inline');
+        socket.open();
+        game.playerTwo.ai=false;
+    });
+    $('#pauseGame').click(()=>{
+        if (!game.playerTwo.ai)
+            socket.emit('pause',game.playerTwo.IdSocket);
+    });
+    $('#continueGame').click(()=>{
+        if (!game.playerTwo.ai)
+            socket.emit('continue',game.playerTwo.IdSocket);
+    });
+    $('#CreateGame').click(()=>{
+        console.log($('#NomPartie').val(),$('#NomPartie').val().length);
+        ($('#NomPartie').val().length!==0)?
+            socket.emit('CreateGame',{
+                NomPartie:$('#NomPartie').val(),
+                ID:socket.id,
+            }):
+            alert('champs vide');
+    });
+    $('#JoinGame').click(()=>{
+        console.log($('#NomPartie').val(),$('#NomPartie').val().length);
+        ($('#NomPartie').val().length!==0)?
+            socket.emit('JoinGame',{
+                NomPartie:$('#NomPartie').val(),
+                ID:socket.id,
+            },(data)=>{
+                if (data.split(' ').length>1){
+                    alert(data);
+                }else{
+                    game.playerTwo.IdSocket=data;
+                    game.playerOne.sprite.posX=conf.PLAYERTWOPOSX;
+                    game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
+                    game.playerOne.originalPosition='right';
+                    game.playerTwo.originalPosition='left';
+                    game.playerOne.service = false;
+                    $('#NomPartie').css('display','none');
+                    $('#CreateGame').css('display','none');
+                    $('#JoinGame').css('display','none');
+                }
+            }):
+            alert('champs vide');
+
+    });
+
 
 </script>
 </html>

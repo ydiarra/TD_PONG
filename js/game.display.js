@@ -34,7 +34,7 @@ game.display = {
         layer.canvas.style.zIndex = zIndex;
         layer.width = width
         layer.canvas.width = width;
-        layer.height = height
+        layer.height = height;
         layer.canvas.height = height;
         if ( x !== undefined )
             layer.posX = x;

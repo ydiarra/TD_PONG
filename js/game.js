@@ -19,7 +19,7 @@ let game = {
     targetResY : null,
     ratioResX : null,
     ratioResY : null,
-
+    multijoueur:false,
     blocToCenter : null,
     ball : {
         sprite : null,
@@ -77,6 +77,7 @@ let game = {
         score : 0,
         ai : false,
         first:false,
+        service:true,
 
     },
     playerTwo : {
@@ -86,7 +87,10 @@ let game = {
         goDown : false,
         originalPosition : "right",
         score : 0,
-        ai : false
+        ai : true,
+        first:false,
+        service:false,
+        IdSocket:'',
     },
     init : function() {
         this.initScreenRes();
@@ -231,10 +235,18 @@ let game = {
         console.log('perdu J1',this.ball.lost(this.playerOne));
         if ( this.ball.lost(this.playerOne) ) {
             this.playerTwo.score++;
-            socket.emit('score',{
-                'ScoreP1':this.playerOne.score,
-                'ScoreP2':this.playerTwo.score
-            });
+            this.playerTwo.service=false;
+            this.playerOne.service = true;
+            if (!this.playerTwo.ai){
+                socket.emit('score',{
+                    'Destinataire':this.playerTwo.IdSocket,
+                    'ScoreP1':this.playerOne.score,
+                    'ScoreP2':this.playerTwo.score,
+                    'Service':false
+                });
+                this.playerOne.service=true;
+            }
+
             if ( this.playerTwo.score > 2 ) {
                 this.gameOn = false;
                 this.ball.inGame = false;
@@ -247,10 +259,16 @@ let game = {
             }
         } else if ( this.ball.lost(this.playerTwo) ) {
             this.playerOne.score++;
-            socket.emit('score',{
-                'ScoreP1':this.playerOne.score,
-                'ScoreP2':this.playerTwo.score
-            });
+            if (!this.playerTwo.ai){
+                socket.emit('score',{
+                    'Destinataire':this.playerTwo.IdSocket,
+                    'ScoreP1':this.playerOne.score,
+                    'ScoreP2':this.playerTwo.score,
+                    'Service':true
+                });
+                this.playerOne.service=false;
+            }
+
             if ( this.playerOne.score > 2 ) {
                 this.gameOn = false;
                 this.ball.inGame = false;
@@ -278,6 +296,11 @@ let game = {
         this.playerOne.score = 0;
 
         this.playerTwo.score = 0;
+        if (!this.playerTwo.ai){
+            socket.emit('reinitGame',{
+                'Destinataire':this.playerTwo.IdSocket,
+            });
+        }
 
         this.scoreLayer.clear();
 
