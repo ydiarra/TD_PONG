@@ -160,8 +160,11 @@
                         'Destinataire':game.playerTwo.IdSocket,
                         'Balle':game.ball
                     });
-            if ( game.ball.inGame )
+            if ( game.ball.inGame ){
                 game.lostBall();
+                console.log('cest chaud ma gueule');
+            }
+
 
             if (game.playerTwo.ai)
                 game.ai.move();
@@ -211,6 +214,7 @@ let first=false;
             game.ball.sprite.posX=data.sprite.posX;
             game.ball.sprite.posY=data.sprite.posY;
             game.ball.speed=data.speed;
+            console.log('info sur la balle');
         }
 
 

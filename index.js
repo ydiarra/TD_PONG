@@ -18,7 +18,7 @@ io.on('connection', function (socket) {
     });
     socket.on('start', function () {
         //console.log(socket, 'un joueur veut commencer !');
-        socket.broadcast.emit('start');
+        // socket.broadcast.emit('start');
     });
     socket.on('Position', function (_a) {
         var Destinataire = _a.Destinataire, Position = _a.Position;
@@ -68,7 +68,7 @@ io.on('connection', function (socket) {
             Games.push({
                 'NomPartie': NomPartie,
                 'IdHote': ID,
-                'IdAdversaire': ''
+                'IdAdversaire': '',
             });
             //socket.join(data);
             socket.emit('GameCreated', NomPartie);

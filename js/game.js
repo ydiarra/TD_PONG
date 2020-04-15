@@ -296,7 +296,7 @@ let game = {
         this.playerOne.score = 0;
 
         this.playerTwo.score = 0;
-        if (!this.playerTwo.ai){
+        if (!this.playerTwo.ai && (this.playerTwo.score>=3 || this.playerOne.score>=3)){
             socket.emit('reinitGame',{
                 'Destinataire':this.playerTwo.IdSocket,
             });

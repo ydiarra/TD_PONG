@@ -23,7 +23,7 @@ io.on('connection',(socket)=>{
 
     socket.on('start',()=>{
         //console.log(socket, 'un joueur veut commencer !');
-        socket.broadcast.emit('start');
+       // socket.broadcast.emit('start');
     });
 
     socket.on('Position',({Destinataire,Position})=>{
