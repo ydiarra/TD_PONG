@@ -162,7 +162,7 @@
                     });
             if ( game.ball.inGame ){
                 game.lostBall();
-                console.log('cest chaud ma gueule');
+
             }
 
 
@@ -223,10 +223,10 @@ let first=false;
     socket.on('nbreConnection',(data)=>{
         console.log('nbre connec',data);
         if(!knowNumberServer && data>1){
-            console.log('je suis passe chez so');
+
             game.playerOne.service = false;
         }else{
-            console.log('je suis le 1er arrivé');
+
             game.playerOne.first = true;
             game.playerOne.service = true;
         }
@@ -239,7 +239,7 @@ let first=false;
         game.playerOne.service = data.Service;
         game.clearLayer(game.scoreLayer);
         game.displayScore( game.playerOne.score , game.playerTwo.score  );
-        console.log('reception maj score');
+
     }) ;
     socket.on('GameCreated',(data)=>{
         $('#NomPartie').css('display','none');
@@ -275,11 +275,11 @@ let first=false;
         game.reinitGame();
     })
     socket.on('continue',()=>{
-        console.log('recpetion continue');
+
         game.control.onContinueGameClickButton();
     })
     socket.on('pause',()=>{
-        console.log('recpetion continue');
+
         game.control.onPauseGameClickButton();
     })
 
