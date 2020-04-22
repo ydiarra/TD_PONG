@@ -20,6 +20,7 @@ let game = {
     ratioResX : null,
     ratioResY : null,
     multijoueur:false,
+    NomPartieMulti:null,
     blocToCenter : null,
     ball : {
         sprite : null,
@@ -92,6 +93,30 @@ let game = {
         service:false,
         IdSocket:'',
     },
+    playerTwo : {
+        sprite : null,
+        color : "#FFFFFF",
+        goUp : false,
+        goDown : false,
+        originalPosition : "right",
+        score : 0,
+        ai : false,
+        first:false,
+        service:false,
+        IdSocket:'',
+    },
+    playerTwo : {
+        sprite : null,
+        color : "#FFFFFF",
+        goUp : false,
+        goDown : false,
+        originalPosition : "right",
+        score : 0,
+        ai : false,
+        first:false,
+        service:false,
+        IdSocket:'',
+    },
     init : function() {
         this.initScreenRes();
         this.resizeDisplayData(conf,this.ratioResX,this.ratioResY);
@@ -115,13 +140,13 @@ let game = {
         this.divGame.style.height = conf.BLOCDIVGAMEHEIGHT + "px";
 
         this.startGameButton = document.getElementById("startGame");
-        this.startGameButton.style.width = conf.BUTTONSTARTGAMEWIDTH + "px";
+        //this.startGameButton.style.width = conf.BUTTONSTARTGAMEWIDTH + "px";
 
         this.pauseGameButton = document.getElementById("pauseGame");
-        this.pauseGameButton.style.width = conf.BUTTONPAUSEGAMEWIDTH + "px";
+        //this.pauseGameButton.style.width = conf.BUTTONPAUSEGAMEWIDTH + "px";
 
         this.continueGameButton = document.getElementById("continueGame");
-        this.continueGameButton.style.width = conf.BUTTONCONTINUEGAMEWIDTH + "px";
+        //this.continueGameButton.style.width = conf.BUTTONCONTINUEGAMEWIDTH + "px";
 
         this.groundLayer= game.display.createLayer("terrain", conf.GROUNDLAYERWIDTH, conf.GROUNDLAYERHEIGHT,
             this.divGame, 0, "#000000", 10, 50);
@@ -194,7 +219,7 @@ let game = {
         window.onkeyup = onKeyUpFunction;
     },
     movePlayers : function() {
-        if ( game.control.controlSystem == "KEYBOARD"  && game.gameOn) {
+        if ( (game.control.controlSystem == "KEYBOARD"  || game.control.controlSystem == "HEAD")  && game.gameOn) {
             // keyboard control
             if ( game.playerOne.goUp && game.playerOne.sprite.posY > 0 )
                 game.playerOne.sprite.posY-=5;
@@ -215,6 +240,7 @@ let game = {
             )
                 game.playerOne.sprite.posY+=5;
         }
+
     },
 
 
@@ -232,7 +258,7 @@ let game = {
         }
     },
     lostBall : function() {
-        console.log('perdu J1',this.ball.lost(this.playerOne));
+       // console.log('perdu J1',this.ball.lost(this.playerOne));
         if ( this.ball.lost(this.playerOne) ) {
             this.playerTwo.score++;
             this.playerTwo.service=false;

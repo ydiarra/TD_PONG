@@ -12,42 +12,38 @@ app.get('/', function(req, res){
 
 let nbreConnection :number=0;
 let Games: Array<any>=[];
+
 io.on('connection',(socket)=>{
     nbreConnection++;
     console.log('a user connected',nbreConnection);
     socket.on('disconnect', function(){
-
         nbreConnection--;
         console.log('user disconnected',nbreConnection);
     });
 
     socket.on('start',()=>{
-        //console.log(socket, 'un joueur veut commencer !');
-       // socket.broadcast.emit('start');
+        //gestion debut de partie
     });
-
     socket.on('Position',({Destinataire,Position})=>{
-        // console.log(data);
         socket
-            .to(Destinataire)
+            .in(Destinataire)
             .emit('Position',Position);
     });
-    socket.on('pause',(data)=>{
-        // console.log(data);
+    socket.on('pause',(data:string)=>{
         socket
-            .to(data)
+            .in(data)
             .emit('pause');
     });
-    socket.on('continue',(data)=>{
-        // console.log(data);
+    socket.on('continue',(data:string)=>{
         socket
-            .to(data)
+            .in(data)
             .emit('continue');
     });
     socket.on('balle',({Destinataire,Balle})=>{
         // console.log('balle:',data);
         socket
-            .to(Destinataire)
+            //.to(Destinataire)
+            .in(Destinataire)
             .emit('balle',Balle);
 
     });
@@ -57,14 +53,18 @@ io.on('connection',(socket)=>{
     }) ;
 
     socket.on('score',({Destinataire, ScoreP1, ScoreP2, Service})=>{
-        socket.to(Destinataire).emit('score',{
-            ScoreP1:ScoreP1,
-            ScoreP2:ScoreP2,
-            Service:Service
-        });
+        socket
+            .in(Destinataire)
+            //.to(Destinataire)
+            .emit('score',{
+                ScoreP1:ScoreP1,
+                ScoreP2:ScoreP2,
+                Service:Service
+            });
 
     }) ;
 ///////////////////////////////////
+    /*
     socket.on('CreateGame',({NomPartie,ID})=>{
 
         if(Games.some((el)=> {return NomPartie==el.NomPartie})){
@@ -82,11 +82,39 @@ io.on('connection',(socket)=>{
             console.log(NomPartie ,'creer',Games.some((el)=>{return NomPartie==el.NomPartie}),NomPartie,Games);
         }
     }) ;
+*/
+
+    socket.on('CreateGame',({NomPartie,ID,nbrJoueur},cb)=>{
+
+        if(Games.some((el)=> {return NomPartie==el.NomPartie})){
+            socket.emit('GameAlreadyExist',NomPartie);
+            cb(null);
+            console.log('exist deja',Games.some((el)=>{return NomPartie==el.NomPartie}),NomPartie,Games);
+        }else
+        {
+            Games.push({
+                'NomPartie': NomPartie,
+                'IdHote':ID,
+                'IdAdversaire':[],
+                'nbrJoueur':nbrJoueur
+
+            });
+            let room=io.nsps['/'].adapter.rooms[NomPartie];
+            if (1===1){};
+            socket.join(NomPartie);
+            cb(NomPartie);
+            console.log(NomPartie ,'creer',Games.some((el)=>{return NomPartie==el.NomPartie}),NomPartie,Games);
+        }
+    }) ;
 
     socket.on('JoinGame',({NomPartie,ID},cb)=>{
-        console.log('Join Game',{NomPartie,ID},Games.some((el)=>{return NomPartie==el.NomPartie}),NomPartie,Games);
-        if(!Games.some((el)=>{return NomPartie === el.NomPartie
-            && el.IdAdversaire === ''
+        console.log('Join Game',{NomPartie,ID},Games.some((el)=>{return NomPartie==el.NomPartie}),
+            NomPartie,Games);
+        if(!Games.some((el)=>{
+            console.log('deja rejoint',el.IdAdversaire.includes(socket.id));
+            return NomPartie === el.NomPartie
+            && el.IdAdversaire.length < el.nbrJoueur-1
+            && !el.IdAdversaire.includes(socket.id)
             && el.IdHote!==socket.id;
         })){
             console.log(Games.filter((el)=>{
@@ -96,29 +124,50 @@ io.on('connection',(socket)=>{
                 return NomPartie==el.NomPartie
             }).length===0)? cb(`la partie n'existe pas`) :  (Games.filter((el)=>{
                 return NomPartie==el.NomPartie
-            })[0].IdHote===socket.id) ?cb('vous ne pouvez pas etre votre propre adversaire'):cb('la partie est complete');
+            })[0].IdHote===socket.id) ?cb({
+                IdHote:'vous ne pouvez pas etre votre propre adversaire',
+                Place:0
+            }):
+                cb({
+                    IdHote:'partie complete',
+                    Place:0
+                });
         }else
         {
-
-            let IdHote=Games
+            let Game=Games
                 .filter((el)=>NomPartie===el.NomPartie)[0]
-                .IdHote;
+                ;
+            let IdHote=Game.IdHote;
             Games
                 .filter((el)=>NomPartie===el.NomPartie)[0]
-                .IdAdversaire=socket.id;
-
+                .IdAdversaire.push(socket.id);
             socket
-                .to(IdHote)
+                .join(NomPartie);
+            socket
+                .in(NomPartie)
+                //.to(IdHote)
                 .emit('AdversaireJoin',socket.id);
+            if(Game.nbrJoueur-1===Game.IdAdversaire.length){
+                socket
+                    .in(NomPartie)
+                    .emit('partieComplete')
+            };
             console.log(socket.id,Games.filter((el)=>{return NomPartie==el.NomPartie})[0].IdHote);
 
             console.log('partie rejoint');
-            cb(IdHote);
+
+            cb({
+                IdHote:IdHote,
+                Place:Game.IdAdversaire.length+1
+            });
         }
     }) ;
 
     socket.on('reinitGame',({Destinataire})=>{
-        socket.to(Destinataire).emit('reinitGame');
+        socket
+            //.to(Destinataire)
+            .in(Destinataire)
+            .emit('reinitGame');
     })
 });
 

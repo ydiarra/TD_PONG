@@ -44,8 +44,10 @@ game.control = {
 
         game.control.controlSystem = "MOUSE";
 
+        let mon_element = document.getElementById('blocToCenter');
+        console.log(elementPosition(mon_element));
         if ( event ) {
-            game.control.mousePointer = event.clientY-conf.MOUSECORRECTIONPOSY;
+            game.control.mousePointer = event.clientY-conf.MOUSECORRECTIONPOSY-elementPosition(mon_element);
         }
 
         if ( game.control.mousePointer > game.playerOne.sprite.posY
@@ -94,3 +96,7 @@ game.control = {
         }
     }
 };
+function elementPosition (a) {
+    return a.offsetTop ;
+
+}
