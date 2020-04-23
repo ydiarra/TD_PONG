@@ -10,11 +10,11 @@
     <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body style="background-image: url(img/FD.jpg);background-repeat: no-repeat; background-size: 100%;">
+<body id="body" style="background-image: url(img/FD.jpg);background-repeat: no-repeat; background-size: 100%;">
 
 <div id="blocToCenter" >
     <div id="Titre">
-        <h1 >PONG GAME</h1>
+<h1>PONG GAME</h1>
     </div>
 
     <div id="left">
@@ -44,6 +44,7 @@
 <script src="js/game.ai.js"></script>
 <script src="js/game.conf.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://threejs.org/build/three.js"></script>
 <script
         src="https://code.jquery.com/jquery-3.4.1.min.js"
         integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -68,20 +69,21 @@
             game.clearLayer(game.playersBallLayer);
             game.movePlayers();
             //envoyer ça position
-            if((game.playerOne.goDown || game.playerOne.goUp)&&(game.playerTwo.IdSocket!=='')){
+            if((game.playerOne.goDown || game.playerOne.goUp)&&(game.playerTwo.IdSocket!==null)){
+                console.log('je suis passé par la ');
                 socket
                     .emit('Position',{
-                        'Destinataire':game.playerTwo.IdSocket,
-                        'Position':game.playerOne.sprite.posY
+                        'Destinataire':game.NomPartieMulti,
+                        'Position':game.playerOne.sprite.posY,
                     });
                 //console.log(game.playerOne.goDown , game.playerOne.goUp);
             }
             game.displayPlayers();
             game.moveBall();
-            if ( game.playerOne.service)
+            if ( game.teamOne.service)
                 socket
                     .emit('balle',{
-                        'Destinataire':game.playerTwo.IdSocket,
+                        'Destinataire':game.NomPartieMulti,
                         'Balle':game.ball
                     });
             if ( game.ball.inGame ){
@@ -113,10 +115,10 @@ let first=false;
         //let playerOneCopie=game.playerOne.sprite.posX;
     });
     $('#pauseGame').click(()=>{
-        socket.emit('pause');
+        socket.emit('pause',game.NomPartieMulti);
     });
     $('#continueGame').click(()=>{
-        socket.emit('continue');
+        socket.emit('continue',game.NomPartieMulti);
     });
 
     SendPosition=()=>{
@@ -125,42 +127,47 @@ let first=false;
     socket.on('start',()=>{
        // alert('un joueur veut commencer !');
     });
-    socket.on('Position',(data)=>{
-        //console.log(data);
-        game.playerTwo.sprite.posY=data;
+    socket.on('Position',({Position,ID})=>{
+        console.log('poistion recu',Position);
+        if (game.playerTwo.IdSocket===ID){
+
+            game.playerTwo.sprite.posY=Position;
+        }else if (game.playerThree.IdSocket===ID){
+            game.playerThree.sprite.posY=Position;
+        }else if (game.playerFour.IdSocket===ID){
+            game.playerFour.sprite.posY=Position;
+        }
+
     });
 
     socket.on('balle',(data)=>{
-        //console.log(data);
-        if(knowNumberServer){
-            game.ball.sprite.posX=data.sprite.posX;
-            game.ball.sprite.posY=data.sprite.posY;
-            game.ball.speed=data.speed;
-            console.log('info sur la balle');
-        }
-
-
+        //console.log(data)
+        game.ball.sprite.posX=data.sprite.posX;
+        game.ball.sprite.posY=data.sprite.posY;
+        game.ball.speed=data.speed;
+        console.log('info sur la balle');
     });
 
     socket.on('nbreConnection',(data)=>{
         console.log('nbre connec',data);
         if(!knowNumberServer && data>1){
 
-            game.playerOne.service = false;
+            game.teamOne.service = false;
         }else{
 
             game.playerOne.first = true;
-            game.playerOne.service = true;
+            game.teamOne.service = true;
         }
         knowNumberServer=true;
 
     })
     socket.on('score',(data)=>{
-        game.playerOne.score = data.ScoreP1;
-        game.playerTwo.score = data.ScoreP2;
-        game.playerOne.service = data.Service;
+        game.teamOne.score = data.ScoreP1;
+        game.teamTwo.score = data.ScoreP2;
+        game.teamOne.service = data.Service;
         game.clearLayer(game.scoreLayer);
-        game.displayScore( game.playerOne.score , game.playerTwo.score  );
+        if (data.ScoreP1)
+        game.displayScore( game.teamOne.score , game.teamTwo.score  );
 
     }) ;
     socket.on('GameCreated',(data)=>{
@@ -168,16 +175,15 @@ let first=false;
         $('#CreateGame').css('display','none');
         $('#CreateGame2v2').css('display','none');
         $('#JoinGame').css('display','none');
-        game.playerOne.service = true;
+        game.teamOne.service = true;
         console.log('created',data);
         $('.lds-roller').css('display','inline-block');
 
         //En attente de l'adversaire
     }) ;
     socket.on('JoinGame',(data)=>{
-
        console.log('joined',data);
-       game.playerTwo.IdSocket=data;
+       //game.playerTwo.IdSocket=data;
     }) ;
     socket.on('GameAlreadyExist',(data)=>{
         alert('cette partie nexiste pas');
@@ -186,26 +192,44 @@ let first=false;
         alert('Ce nom de jeu nexiste pas');
     }) ;
 
-    socket.on('AdversaireJoin',(data)=>{
-        console.log('l adversaire a rejoint la partie',data);
-        $('.lds-roller').css('display','none');
+    socket.on('AdversaireJoin',({ID,playerPLace})=>{
+        console.log('l adversaire a rejoint la partie',ID,playerPLace);
+
         //attente adversaire... fin
         //gerer le debut du match
-        game.playerTwo.IdSocket=data;
+        alert(playerPLace+1);
+        switch (playerPLace+1) {
+            case(2):
+                game.playerTwo.IdSocket=ID;
+                break;
+            case(3):
+                (game.Myplace===2)?
+                    game.playerFour.IdSocket=ID:
+                    game.playerThree.IdSocket=ID;
 
-    })
+                break;
+            case(4):
+                (game.Myplace===2)?
+                    game.playerThree.IdSocket=ID:
+                game.playerFour.IdSocket=ID;
+                break;
+        }
+
+
+    });
     socket.on('reinitGame',()=>{
         game.reinitGame();
-    })
+    });
     socket.on('continue',()=>{
-
         game.control.onContinueGameClickButton();
-    })
+    });
     socket.on('pause',()=>{
-
         game.control.onPauseGameClickButton();
-    })
+    });
+    socket.on('partieComplete',()=>{
+        $('.lds-roller').css('display','none');
 
+    })
     //attente de l'adversaire
     //variable service celui qui sert dinne la position de la balle jusqu'au moment ou il perd
     //ameliorer le multi etre sur que le 2 joueurs sont prs
@@ -251,9 +275,10 @@ let first=false;
                         $('#NomPartie').css('display','none');
                         $('#CreateGame').css('display','none');
                         $('#JoinGame').css('display','none');
+                        $('.lds-roller').css('display','inline-block');
                         game.playerOne.service = true;
                         console.log('created',data);
-                        $('.lds-roller').css('display','inline-block');
+                        game.Myplace=1;
                     }
                 }):
             alert('champs vide');
@@ -272,9 +297,12 @@ let first=false;
                         $('#NomPartie').css('display','none');
                         $('#CreateGame').css('display','none');
                         $('#JoinGame').css('display','none');
-                        game.playerOne.service = true;
-                        console.log('created',data);
+                        $('#CreateGame2v2').css('display','none');
                         $('.lds-roller').css('display','inline-block');
+                        game.Myplace=1;
+                        game.teamOne.service = true;
+                        console.log('created',data);
+
                     }
                 }):
             alert('champs vide');
@@ -291,103 +319,71 @@ let first=false;
                     alert(data.IdHote);
                     game.NomPartieMulti=null;
                 }else{
-                    console.log('place',data.Place);
-                    game.playerTwo.IdSocket=data.IdHote;
-                    game.playerOne.sprite.posX=conf.PLAYERTWOPOSX;
-                    game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
-                    game.playerOne.originalPosition='right';
-                    game.playerTwo.originalPosition='left';
-                    game.playerOne.service = false;
+                    console.log('place',data);
+                    //alert(data.Place);
+                    switch(data.Place+1){
+                        case(2):
+                            game.Myplace=2;
+                            game.playerOne.sprite.posX=conf.PLAYERTWOPOSX;
+                            game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
+                            console.log(2,game.playerOne.sprite.posX,game.playerTwo.sprite.posX);
+                            game.playerOne.originalPosition='right';
+                            game.playerTwo.originalPosition='left';
+                            //////////////////////
+                            game.playerThree.sprite.posX=conf.PLAYERFOURPOSX;
+                            game.playerFour.sprite.posX=conf.PLAYERTHREEPOSX;
+                            game.playerThree.originalPosition='left';
+                            game.playerFour.originalPosition='right';
+                            game.playerTwo.IdSocket=data.IdHote;
+                            console.log(data.Adversaire);
+                            if (data.Dernier)
+                                $('#CreateGame2v2').css('display','none');
+                            break;
+                        case(4):
+                            game.Myplace=4;
+                            game.playerOne.sprite.posX=conf.PLAYERFOURPOSX;
+                            game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
+                            game.playerOne.originalPosition='left';
+                            game.playerTwo.originalPosition='right';
+                            //////////////////////
+                            game.playerThree.sprite.posX=conf.PLAYERTWOPOSX;
+                            game.playerFour.sprite.posX=conf.PLAYERTHREEPOSX;
+                            game.playerFour.originalPosition='right';
+                            game.playerThree.originalPosition='left';
+
+                            game.teamOne.service = false;
+                            game.playerThree.IdSocket=data.Adversaire[0];
+                            game.playerFour.IdSocket=data.Adversaire[1];
+                            game.playerTwo.IdSocket=data.IdHote;
+                            console.log(data.Adversaire[0]);
+                            $('#CreateGame2v2').css('display','none');
+                            break;
+                        case(3):
+                            game.Myplace=3;
+                            game.playerOne.sprite.posX=conf.PLAYERTHREEPOSX;
+                            game.playerThree.sprite.posX=conf.PLAYERONEPOSX;
+                            console.log(data.Adversaire);
+                            game.playerThree.IdSocket=data.IdHote;
+                            game.playerTwo.IdSocket=data.Adversaire[0];
+
+                            //replacer l'id de l'hote au bonne endroit
+
+
+                            break;
+                    };
+
+
                     $('#NomPartie').css('display','none');
                     $('#CreateGame').css('display','none');
                     $('#JoinGame').css('display','none');
+                    $('#CreateGame2v2').css('display','none');
+                    if(!data.Dernier)
+                    $('.lds-roller').css('display','inline-block');
                 }
             }):
             alert('champs vide');
 
     });
-
-
-</script>
-
-<script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
-
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "https://teachablemachine.withgoogle.com/models/C0W5bqm9H/";
-
-    let model, webcam, labelContainer, maxPredictions;
-
-    // Load the image model and setup the webcam
-    async function init() {
-        alert('init');
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
-
-        // Convenience function to setup a webcam
-        const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
-
-        // append elements to the DOM
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
-        }
-    }
-
-    async function loop() {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
-
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-
-        const prediction = await model.predict(webcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-
-            game.control.controlSystem = "KEYBOARD";
-            if (i===0 && prediction[i].probability.toFixed(2)>=0.85){
-                game.control.controlSystem = "HEAD";
-                game.playerOne.goUp = true;
-                game.playerOne.goDown = false;
-                console.log( 'haut');
-            }
-            if (i===1 && prediction[i].probability.toFixed(2)>=0.85){
-                game.control.controlSystem = "HEAD";
-                game.playerOne.goDown = true;
-                game.playerOne.goUp = false;
-                console.log( 'bas');
-            }
-            if (i===2 && prediction[i].probability.toFixed(2)>=0.85){
-                game.control.controlSystem = "HEAD";
-                game.playerOne.goDown = false;
-                game.playerOne.goUp = false;
-                console.log( 'milieu');
-            }
-            (i===0)?  classPrediction =
-                " haut : " + prediction[i].probability.toFixed(2):
-                (i===1)?
-             classPrediction =
-                "bas : " + prediction[i].probability.toFixed(2):
-                "milieu:"+prediction[i].probability.toFixed(2);
-
-            labelContainer.childNodes[i].innerHTML = classPrediction;
-        }
-    }
 </script>
 </html>
+

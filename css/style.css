@@ -1,8 +1,45 @@
+@import url('https://fonts.googleapis.com/css?family=Pirata+One|Rubik:900');
+
+@font-face {
+    font-family:'Rig Bold Coarse';
+    src:url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/Rig-BoldCoarse.otf');
+}
+
+@font-face {
+    font-family:'Rig Bold Extrude';
+    src:url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/Rig-BoldExtrude.otf');
+}
+
+@font-face {
+    font-family:'Rig Bold Shadow';
+    src:url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/Rig-BoldShadow.otf');
+}
+
+@font-face {
+    font-family:'Rig Bold Face';
+    src:url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/Rig-BoldFace.otf');
+}
+
+@font-face {
+    font-family:'Rig Bold Inline';
+    src:url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/Rig-BoldInline.otf');
+}
+
+
+h1 {
+    font-family: 'Rig Bold Face', sans-serif;
+    text-transform: uppercase;
+
+    font-weight: normal;
+    transform: translate(-50%, -50%);
+
+}
+
 body {
     display: grid;
     width: 100%;
     height: 100vh;
-
+    margin: 0;
 }
 #blocToCenter{
     display: grid;
@@ -43,21 +80,23 @@ body {
 h1{
     margin: auto;
     padding: 10px;
-    -webkit-animation: glitch 800ms infinite;
-    color:  #fc00fc;
+    -webkit-animation: glitch 1000ms infinite;
     font-size: 60px;
     font-weight: bold;
-
+    font-family: 'Rubik';
+    background: linear-gradient(to right, #fc00fc,#fc00fc, #0962EA, #0962EA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
+
+
+
 #CreateGame,#continueGame,#CreateGame2v2,#JoinGame,#NomPartie,#startGame,#multijoueur,#pauseGame
 ,#ML{
     height:25px;
     text-align-all: center;
 }
-@font-face {
-    font-family: 'DS-DIGIB';
-    src: url('./font/ds_digital/DS-DIGIB.TTF');
-}
+
 .lds-roller {
     display: none;
     position: relative;

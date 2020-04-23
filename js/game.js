@@ -19,9 +19,11 @@ let game = {
     targetResY : null,
     ratioResX : null,
     ratioResY : null,
+    Myplace:null,
     multijoueur:false,
     NomPartieMulti:null,
     blocToCenter : null,
+    gameNbrePlayer:2,
     ball : {
         sprite : null,
         color : "#FFD700",
@@ -69,16 +71,24 @@ let game = {
         },
 
     },
+    teamOne:{
+        score:0,
+        service:true,
+    },
+    teamTwo:{
+        score:0,
+        service:false,
+    },
     playerOne : {
         sprite : null,
         color : "#FFFFFF",
         goUp : false,
         goDown : false,
         originalPosition : "left",
-        score : 0,
+        //score : 0,
         ai : false,
         first:false,
-        service:true,
+        //service:true,
 
     },
     playerTwo : {
@@ -87,35 +97,33 @@ let game = {
         goUp : false,
         goDown : false,
         originalPosition : "right",
-        score : 0,
+        //score : 0,
         ai : true,
         first:false,
-        service:false,
-        IdSocket:'',
+        //service:false,
+        IdSocket:null,
     },
-    playerTwo : {
+    playerThree : {
+        sprite : null,
+        color : "#FFFFFF",
+        goUp : false,
+        goDown : false,
+        originalPosition : "left",
+        ai : false,
+        first:false,
+       // service:false,
+        IdSocket:null,
+    },
+    playerFour : {
         sprite : null,
         color : "#FFFFFF",
         goUp : false,
         goDown : false,
         originalPosition : "right",
-        score : 0,
         ai : false,
         first:false,
         service:false,
-        IdSocket:'',
-    },
-    playerTwo : {
-        sprite : null,
-        color : "#FFFFFF",
-        goUp : false,
-        goDown : false,
-        originalPosition : "right",
-        score : 0,
-        ai : false,
-        first:false,
-        service:false,
-        IdSocket:'',
+        IdSocket:null,
     },
     init : function() {
         this.initScreenRes();
@@ -171,6 +179,10 @@ let game = {
             "./img/playerOne.png");
         this.playerTwo.sprite = game.display.createSprite(conf.PLAYERTWOWIDTH,conf.PLAYERTWOHEIGHT,conf.PLAYERTWOPOSX,conf.PLAYERTWOPOSY,
             "./img/playerTwo.png");
+        this.playerThree.sprite = game.display.createSprite(conf.PLAYERTHREEWIDTH,conf.PLAYERTHREEHEIGHT,conf.PLAYERTHREEPOSX,conf.PLAYERTHREEPOSY,
+            "./img/playerOne.png");
+        this.playerFour.sprite = game.display.createSprite(conf.PLAYERFOURWIDTH,conf.PLAYERFOURHEIGHT,conf.PLAYERFOURPOSX,conf.PLAYERFOURPOSY,
+            "./img/playerTwo.png");
         this.displayPlayers();
 
         this.initKeyboard(game.control.onKeyDown, game.control.onKeyUp);
@@ -205,6 +217,12 @@ let game = {
             this.playerOne.sprite.posY,this.playerOne.sprite.width,this.playerOne.sprite.height);
         game.display.drawImageInLayer(this.playersBallLayer, this.playerTwo.sprite.img, this.playerTwo.sprite.posX,
             this.playerTwo.sprite.posY,this.playerTwo.sprite.width,this.playerTwo.sprite.height);
+        if (this.playerThree.IdSocket!==null)
+        game.display.drawImageInLayer(this.playersBallLayer, this.playerThree.sprite.img, this.playerThree.sprite.posX,
+            this.playerThree.sprite.posY,this.playerThree.sprite.width,this.playerThree.sprite.height);
+        if (this.playerFour.IdSocket!==null)
+        game.display.drawImageInLayer(this.playersBallLayer, this.playerFour.sprite.img, this.playerFour.sprite.posX,
+            this.playerFour.sprite.posY,this.playerFour.sprite.width,this.playerFour.sprite.height);
     },
     moveBall : function() {
         this.ball.move();
@@ -256,24 +274,34 @@ let game = {
             this.changeBallPath(game.playerTwo, game.ball);
             // this.playerSound.play();
         }
+
+        if ( this.ball.collide(game.playerFour) && this.playerFour.IdSocket !==null ) {
+            this.changeBallPath(game.playerFour, game.ball);
+            // this.playerSound.play();
+        }
+        if ( this.ball.collide(game.playerThree) && this.playerFour.IdSocket !==null) {
+            this.changeBallPath(game.playerThree, game.ball);
+            // this.playerSound.play();
+        }
     },
     lostBall : function() {
        // console.log('perdu J1',this.ball.lost(this.playerOne));
         if ( this.ball.lost(this.playerOne) ) {
-            this.playerTwo.score++;
-            this.playerTwo.service=false;
-            this.playerOne.service = true;
+            this.teamTwo.score++;
+            this.teamTwo.service=false;
+            this.teamOne.service = true;
             if (!this.playerTwo.ai){
                 socket.emit('score',{
-                    'Destinataire':this.playerTwo.IdSocket,
-                    'ScoreP1':this.playerOne.score,
-                    'ScoreP2':this.playerTwo.score,
+                    'Destinataire':this.NomPartieMulti,
+                    'ScoreP1':this.teamOne.score,
+                    'ScoreP2':this.teamTwo.score,
                     'Service':false
                 });
-                this.playerOne.service=true;
+                this.teamOne.service=true;
+                this.teamTwo.service=false;
             }
 
-            if ( this.playerTwo.score > 2 ) {
+            if ( this.teamTwo.score > 2 ) {
                 this.gameOn = false;
                 this.ball.inGame = false;
             } else {
@@ -284,18 +312,19 @@ let game = {
                 }
             }
         } else if ( this.ball.lost(this.playerTwo) ) {
-            this.playerOne.score++;
+            this.teamOne.score++;
             if (!this.playerTwo.ai){
                 socket.emit('score',{
-                    'Destinataire':this.playerTwo.IdSocket,
-                    'ScoreP1':this.playerOne.score,
-                    'ScoreP2':this.playerTwo.score,
+                    'Destinataire':this.NomPartieMulti,
+                    'ScoreP1':this.teamOne.score,
+                    'ScoreP2':this.teamTwo.score,
                     'Service':true
                 });
-                this.playerOne.service=false;
+                this.teamOne.service=false;
+                this.teamTwo.service=true;
             }
 
-            if ( this.playerOne.score > 2 ) {
+            if ( this.teamOne.score > 2 ) {
                 this.gameOn = false;
                 this.ball.inGame = false;
             } else {
@@ -308,7 +337,7 @@ let game = {
         }
 
         this.scoreLayer.clear();
-        this.displayScore(this.playerOne.score, this.playerTwo.score);
+        this.displayScore(this.teamOne.score, this.teamTwo.score);
     },
     initStartGameButton : function() {
         this.startGameButton.onclick = game.control.onStartGameClickButton;
@@ -319,18 +348,18 @@ let game = {
 
         this.ball.speed = 1;
 
-        this.playerOne.score = 0;
+        this.teamOne.score = 0;
 
-        this.playerTwo.score = 0;
-        if (!this.playerTwo.ai && (this.playerTwo.score>=3 || this.playerOne.score>=3)){
+        this.teamTwo.score = 0;
+        if (!this.playerTwo.ai && (this.teamOne.score>=3 || this.teamTwo.score>=3)){
             socket.emit('reinitGame',{
-                'Destinataire':this.playerTwo.IdSocket,
+                'Destinataire':this.NomPartieMulti,
             });
         }
 
         this.scoreLayer.clear();
 
-        this.displayScore(this.playerOne.score, this.playerTwo.score);
+        this.displayScore(this.teamOne.score, this.teamTwo.score);
 
     },
     ballOnPlayer : function(player, ball) {

@@ -12,7 +12,8 @@ game.control = {
 
             game.playerOne.goUp = true;
         }
-        if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn && game.playerOne.service ) {
+        if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn && game.teamOne.service
+            && game.Myplace<=2) {
             game.ball.inGame = true;
             if ( game.playerOne.originalPosition === "right" ) {
                 console.log(game.playerOne.originalPosition,game.ball.inGame);

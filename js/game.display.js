@@ -68,7 +68,7 @@ game.display = {
     },
 
     createSprite : function(width, height, posX, posY, imagePath) {
-        console.log(imagePath,posX,posY ,width,height);
+        //console.log(imagePath,posX,posY ,width,height);
         var sprite = Object.create(this.sprite);
 
         sprite.width = width;

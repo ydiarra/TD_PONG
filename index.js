@@ -17,28 +17,24 @@ io.on('connection', function (socket) {
         console.log('user disconnected', nbreConnection);
     });
     socket.on('start', function () {
-        //console.log(socket, 'un joueur veut commencer !');
-        // socket.broadcast.emit('start');
+        //gestion debut de partie
     });
     socket.on('Position', function (_a) {
         var Destinataire = _a.Destinataire, Position = _a.Position;
-        // console.log(data);
         socket
-            //.to(Destinataire)
             .in(Destinataire)
-            .emit('Position', Position);
+            .emit('Position', {
+            Position: Position,
+            ID: socket.id,
+        });
     });
     socket.on('pause', function (data) {
-        // console.log(data);
         socket
-            //.to(data)
             .in(data)
             .emit('pause');
     });
     socket.on('continue', function (data) {
-        // console.log(data);
         socket
-            //.to(data)
             .in(data)
             .emit('continue');
     });
@@ -64,26 +60,6 @@ io.on('connection', function (socket) {
             Service: Service
         });
     });
-    ///////////////////////////////////
-    /*
-    socket.on('CreateGame',({NomPartie,ID})=>{
-
-        if(Games.some((el)=> {return NomPartie==el.NomPartie})){
-            socket.emit('GameAlreadyExist',NomPartie);
-            console.log('exist deja',Games.some((el)=>{return NomPartie==el.NomPartie}),NomPartie,Games);
-        }else
-        {
-            Games.push({
-                'NomPartie': NomPartie,
-                'IdHote':ID,
-                'IdAdversaire':'',
-            });
-            //socket.join(data);
-            socket.emit('GameCreated',NomPartie);
-            console.log(NomPartie ,'creer',Games.some((el)=>{return NomPartie==el.NomPartie}),NomPartie,Games);
-        }
-    }) ;
-*/
     socket.on('CreateGame', function (_a, cb) {
         var NomPartie = _a.NomPartie, ID = _a.ID, nbrJoueur = _a.nbrJoueur;
         if (Games.some(function (el) { return NomPartie == el.NomPartie; })) {
@@ -121,28 +97,54 @@ io.on('connection', function (socket) {
             }).length);
             (Games.filter(function (el) {
                 return NomPartie == el.NomPartie;
-            }).length === 0) ? cb("la partie n'existe pas") : (Games.filter(function (el) {
+            }).length === 0) ? cb({
+                IdHote: "la partie n'existe pas",
+                Place: 0,
+                Dernier: true
+            }) : (Games.filter(function (el) {
                 return NomPartie == el.NomPartie;
-            })[0].IdHote === socket.id) ? cb('vous ne pouvez pas etre votre propre adversaire') :
-                cb('la partie est complete');
+            })[0].IdHote === socket.id) ? cb({
+                IdHote: 'vous ne pouvez pas etre votre propre adversaire',
+                Place: 0,
+                Dernier: true,
+            }) :
+                cb({
+                    IdHote: 'partie complete',
+                    Place: 0,
+                    Dernier: true,
+                });
         }
         else {
-            var IdHote = Games
-                .filter(function (el) { return NomPartie === el.NomPartie; })[0]
-                .IdHote;
-            Games
-                .filter(function (el) { return NomPartie === el.NomPartie; })[0]
-                .IdAdversaire.push(socket.id);
+            var Game = Games
+                .filter(function (el) { return NomPartie === el.NomPartie; })[0];
+            var IdHote = Game.IdHote;
             socket
                 .join(NomPartie);
             socket
                 .in(NomPartie)
                 //.to(IdHote)
-                .emit('AdversaireJoin', socket.id);
-            console.log(socket.id, Games.filter(function (el) { return NomPartie == el.NomPartie; })[0].IdHote);
-            console.log('partie rejoint');
-            cb(IdHote);
+                .emit('AdversaireJoin', {
+                ID: socket.id,
+                playerPLace: Game.IdAdversaire.length + 1
+            });
+            cb({
+                IdHote: IdHote,
+                Place: Game.IdAdversaire.length + 1,
+                Dernier: Game.IdAdversaire.length + 1 === Game.nbrJoueur - 1,
+                Adversaire: Game.IdAdversaire,
+            });
+            Games
+                .filter(function (el) { return NomPartie === el.NomPartie; })[0]
+                .IdAdversaire.push(socket.id);
+            if (Game.nbrJoueur - 1 === Game.IdAdversaire.length) {
+                socket
+                    .in(NomPartie)
+                    .emit('partieComplete');
+                console.log('partie', Game.IdAdversaire.length + 1);
+            }
         }
+        ;
+        console.log('partie rejoint');
     });
     socket.on('reinitGame', function (_a) {
         var Destinataire = _a.Destinataire;
