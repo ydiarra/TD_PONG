@@ -52,7 +52,7 @@
 <script>
     (function () {
         // début du code isolé
-        let multi=true;
+
         let requestAnimId;
         let initialisation = ()=> {
             // le code de l'initialisation
@@ -128,7 +128,7 @@ let first=false;
        // alert('un joueur veut commencer !');
     });
     socket.on('Position',({Position,ID})=>{
-        console.log('poistion recu',Position);
+        //console.log('poistion recu',Position);
         if (game.playerTwo.IdSocket===ID){
 
             game.playerTwo.sprite.posY=Position;
@@ -145,7 +145,7 @@ let first=false;
         game.ball.sprite.posX=data.sprite.posX;
         game.ball.sprite.posY=data.sprite.posY;
         game.ball.speed=data.speed;
-        console.log('info sur la balle');
+        //console.log('info sur la balle');
     });
 
     socket.on('nbreConnection',(data)=>{
@@ -161,13 +161,24 @@ let first=false;
         knowNumberServer=true;
 
     })
-    socket.on('score',(data)=>{
-        game.teamOne.score = data.ScoreP1;
-        game.teamTwo.score = data.ScoreP2;
-        game.teamOne.service = data.Service;
+    socket.on('score',({ScoreP1,ScoreP2,Service,ID})=>{
+
+        if (game.playerTwo.IdSocket===ID && (game.Myplace===3 || game.Myplace===1)
+        ||(game.playerOne.IdSocket===ID && (game.Myplace===2 || game.Myplace===4))){
+            alert(1);
+
+            game.teamOne.score = ScoreP2;
+            game.teamTwo.score = ScoreP1;
+        }else if (game.playerTwo.IdSocket===ID && !(game.Myplace===3 || game.Myplace===1)
+            ||(game.playerOne.IdSocket===ID && !(game.Myplace===2 || game.Myplace===4))){
+
+            game.teamOne.score = ScoreP1;
+            game.teamTwo.score = ScoreP2;
+        }
+        game.teamOne.service = Service;
         game.clearLayer(game.scoreLayer);
-        if (data.ScoreP1)
-        game.displayScore( game.teamOne.score , game.teamTwo.score  );
+
+        game.displayScore( game.teamOne.score , game.teamTwo.score  )
 
     }) ;
     socket.on('GameCreated',(data)=>{
@@ -177,7 +188,7 @@ let first=false;
         $('#JoinGame').css('display','none');
         game.teamOne.service = true;
         console.log('created',data);
-        $('.lds-roller').css('display','inline-block');
+        $('.lds-roller').css('display','inline');
 
         //En attente de l'adversaire
     }) ;
@@ -197,7 +208,7 @@ let first=false;
 
         //attente adversaire... fin
         //gerer le debut du match
-        alert(playerPLace+1);
+        //alert(playerPLace+1);
         switch (playerPLace+1) {
             case(2):
                 game.playerTwo.IdSocket=ID;
@@ -212,6 +223,7 @@ let first=false;
                 (game.Myplace===2)?
                     game.playerThree.IdSocket=ID:
                 game.playerFour.IdSocket=ID;
+                game.gameOn=true;
                 break;
         }
 
@@ -228,7 +240,8 @@ let first=false;
     });
     socket.on('partieComplete',()=>{
         $('.lds-roller').css('display','none');
-
+        game.gameOn=true;
+        game.reinitGame();
     })
     //attente de l'adversaire
     //variable service celui qui sert dinne la position de la balle jusqu'au moment ou il perd
@@ -275,7 +288,9 @@ let first=false;
                         $('#NomPartie').css('display','none');
                         $('#CreateGame').css('display','none');
                         $('#JoinGame').css('display','none');
-                        $('.lds-roller').css('display','inline-block');
+                        $('.lds-roller').css('display','inline');
+                        $('#CreateGame2v2').css('display','none');
+
                         game.playerOne.service = true;
                         console.log('created',data);
                         game.Myplace=1;
@@ -298,8 +313,9 @@ let first=false;
                         $('#CreateGame').css('display','none');
                         $('#JoinGame').css('display','none');
                         $('#CreateGame2v2').css('display','none');
-                        $('.lds-roller').css('display','inline-block');
+                        $('.lds-roller').css('display','inline');
                         game.Myplace=1;
+                        game.gameOn=false;
                         game.teamOne.service = true;
                         console.log('created',data);
 
@@ -322,6 +338,7 @@ let first=false;
                     console.log('place',data);
                     //alert(data.Place);
                     switch(data.Place+1){
+
                         case(2):
                             game.Myplace=2;
                             game.playerOne.sprite.posX=conf.PLAYERTWOPOSX;
@@ -336,26 +353,31 @@ let first=false;
                             game.playerFour.originalPosition='right';
                             game.playerTwo.IdSocket=data.IdHote;
                             console.log(data.Adversaire);
-                            if (data.Dernier)
+                            if (data.Dernier){
                                 $('#CreateGame2v2').css('display','none');
+                                game.gameOn=true;
+                                game.reinitGame();
+                            }
+
                             break;
                         case(4):
                             game.Myplace=4;
                             game.playerOne.sprite.posX=conf.PLAYERFOURPOSX;
                             game.playerTwo.sprite.posX=conf.PLAYERONEPOSX;
-                            game.playerOne.originalPosition='left';
-                            game.playerTwo.originalPosition='right';
+                            game.playerOne.originalPosition='right';
+                            game.playerTwo.originalPosition='left';
                             //////////////////////
                             game.playerThree.sprite.posX=conf.PLAYERTWOPOSX;
                             game.playerFour.sprite.posX=conf.PLAYERTHREEPOSX;
-                            game.playerFour.originalPosition='right';
                             game.playerThree.originalPosition='left';
+                            game.playerFour.originalPosition='right';
 
                             game.teamOne.service = false;
                             game.playerThree.IdSocket=data.Adversaire[0];
                             game.playerFour.IdSocket=data.Adversaire[1];
                             game.playerTwo.IdSocket=data.IdHote;
                             console.log(data.Adversaire[0]);
+
                             $('#CreateGame2v2').css('display','none');
                             break;
                         case(3):
@@ -365,7 +387,8 @@ let first=false;
                             console.log(data.Adversaire);
                             game.playerThree.IdSocket=data.IdHote;
                             game.playerTwo.IdSocket=data.Adversaire[0];
-
+                            game.gameOn=true;
+                            game.reinitGame();
                             //replacer l'id de l'hote au bonne endroit
 
 
@@ -378,7 +401,7 @@ let first=false;
                     $('#JoinGame').css('display','none');
                     $('#CreateGame2v2').css('display','none');
                     if(!data.Dernier)
-                    $('.lds-roller').css('display','inline-block');
+                        $('.lds-roller').css('display','inline-block');
                 }
             }):
             alert('champs vide');

@@ -57,7 +57,8 @@ io.on('connection', function (socket) {
             .emit('score', {
             ScoreP1: ScoreP1,
             ScoreP2: ScoreP2,
-            Service: Service
+            Service: Service,
+            ID: socket.id,
         });
     });
     socket.on('CreateGame', function (_a, cb) {

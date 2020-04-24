@@ -13,18 +13,20 @@ game.control = {
             game.playerOne.goUp = true;
         }
         if ( event.keyCode == game.keycode.SPACEBAR && !game.ball.inGame && game.gameOn && game.teamOne.service
-            && game.Myplace<=2) {
+            && game.Myplace<=2
+            ) {
+
             game.ball.inGame = true;
             if ( game.playerOne.originalPosition === "right" ) {
                 console.log(game.playerOne.originalPosition,game.ball.inGame);
-                game.ball.inGame = true;
+                //game.ball.inGame = true;
                 game.ball.sprite.posX = game.playerOne.sprite.posX - game.playerOne.sprite.width-10;
                 game.ball.sprite.posY = game.playerOne.sprite.posY+game.playerOne.sprite.height/2;
                 game.ball.directionX = -1;
                 game.ball.directionY = 1;
             } else {
                 console.log(game.playerOne.originalPosition,game.ball.inGame );
-                game.ball.inGame = true;
+                //game.ball.inGame = true;
                 game.ball.sprite.posX = game.playerOne.sprite.posX + game.playerOne.sprite.width+10;
                 game.ball.sprite.posY = game.playerOne.sprite.posY+game.playerOne.sprite.height/2;
                 game.ball.directionX = 1;
@@ -71,12 +73,9 @@ game.control = {
     },
 
     onStartGameClickButton : function() {
-        if ( !game.gameOn ) {
-
+        if (( !game.gameOn  && game.NomPartieMulti===null)||(game.teamTwo>=4)||(game.teamOne>=4)) {
             game.reinitGame();
-
             game.gameOn = true;
-
         }
     },
     drawImageInLayer : function(targetLayer, image, x, y) {

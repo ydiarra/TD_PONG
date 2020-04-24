@@ -62,7 +62,8 @@ io.on('connection',(socket)=>{
             .emit('score',{
                 ScoreP1:ScoreP1,
                 ScoreP2:ScoreP2,
-                Service:Service
+                Service:Service,
+                ID:socket.id,
             });
     }) ;
     socket.on('CreateGame',({NomPartie,ID,nbrJoueur},cb)=>{
