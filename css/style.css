@@ -41,6 +41,9 @@ body {
     height: 100vh;
     margin: 0;
 }
+#ML{
+    display:none ;
+}
 #blocToCenter{
     display: grid;
     margin: auto;
@@ -94,6 +97,7 @@ h1{
 #CreateGame,#continueGame,#CreateGame2v2,#JoinGame,#NomPartie,#startGame,#multijoueur,#pauseGame
 ,#ML{
     height:25px;
+    width: 130px;
     text-align-all: center;
 }
 
@@ -189,6 +193,7 @@ stretch, .button:after, .button:before {
     top: 0;
 }
 .button {
+
     background: #0962EA;
     background-size: 100%;
     background-image: -webkit-gradient(linear, 0% 50%, 100% 50%, color-stop(0%, #0962EA), color-stop(100%, #e042f5));

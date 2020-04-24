@@ -204,11 +204,8 @@ let first=false;
     }) ;
 
     socket.on('AdversaireJoin',({ID,playerPLace})=>{
-        console.log('l adversaire a rejoint la partie',ID,playerPLace);
 
-        //attente adversaire... fin
-        //gerer le debut du match
-        //alert(playerPLace+1);
+
         switch (playerPLace+1) {
             case(2):
                 game.playerTwo.IdSocket=ID;
@@ -335,8 +332,7 @@ let first=false;
                     alert(data.IdHote);
                     game.NomPartieMulti=null;
                 }else{
-                    console.log('place',data);
-                    //alert(data.Place);
+
                     switch(data.Place+1){
 
                         case(2):
