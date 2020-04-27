@@ -1,11 +1,17 @@
-# TD_PONG
+# TD PONG
 
-One Paragraph of project description goes here
+TD TechnoLog
 
 ## Getting Started
 
 ```````````````````````````````
-clone ... && npm i && npm start
+git clone git@github.com:ydiarra/TD_PONG.git && cd TD_PONG && npm i && npm start
 ```````````````````````````````
                                                                                              
 
+## Docker Container
+
+`````````
+docker image pull yannisdia/td_pong_docker
+docker container run -d -p [VotrePort]:3000  yannisdia/td_pong_docker
+`````````
